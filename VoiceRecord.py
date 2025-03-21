@@ -2,15 +2,15 @@ import vosk
 import pyaudio
 import json
 import threading
+from enums import typeEnum, languageEnum
 
 class VoiceRecord():
-
     def __init__(self):
         self.model = None
         self.rec = None
         self.stream = None
 
-    def voiceInitial(self, model_path, language):
+    def voiceInitial(self, model_path, language, status=0):
         self.model = vosk.Model(model_path)
         self.rec = vosk.KaldiRecognizer(self.model, 16000)
 
@@ -20,60 +20,55 @@ class VoiceRecord():
                         rate=16000,
                         input=True,
                         frames_per_buffer=8192)
-        if language == 1:
-            info = "Listening for speech. Say 'Stop' to stop. or 'End' to end"
+        if status == typeEnum.START.value:
+            if language == languageEnum.ENGLISH.value:
+                info = "stop - end of sentence, exit - end chat"
+            else:
+                info = "stop - koniec sekwencji, wyjście - koniec rozmowy"
         else:
-            info = "Nasluchiwanie wypowiedzi. Powiedz 'Stop' by zakończyć nagrywanie albo 'Koniec' by zakończyć program"
+            if language == languageEnum.ENGLISH.value:
+                info = "start - start conversation with AI"
+            else:
+                info = "start - rozpocznij rozmowę z AI"
         return info
-        
 
-    def voiceRecord(self, language, callback):
+    def voiceRecord(self, callback):
         self.recognized_text = ""
+        self.rec_text = ""
         self.message = ""
-        self.end = False
+        self.type = ""
+        self.status= ""
         def recordAudio():
             while True:
-                try:
-                    data = self.stream.read(4096, exception_on_overflow=False)  # Obsługa błędu przepełnienia
-                except Exception as e:
-                    print(f"Error reading stream: {e}")
-                    break
-                #data = self.stream.read(4096)
+                data = self.stream.read(4096)
                 if self.rec.AcceptWaveform(data):
-                    print(f"Data length: {len(data)}")
-                    print(f"First bytes: {data[:10]}")
                     result = json.loads(self.rec.Result())
                     self.recognized_text = result.get('text', '').strip()
+                    print(self.recognized_text)
                     
-                    print(f"Recognized: {self.recognized_text}")
-
+                    if "start" in self.recognized_text.lower():
+                        self.status = typeEnum.START
+                        break
+                    
                     if "stop" in self.recognized_text.lower():
-                        if language == 1:
-                            self.message = "Termination keyword detected. Stopping..."
-                        else:
-                            self.message = "Wykryto słowo stopujące. Zatrzymanie..."
-                            #print(self.message)
-                        callback(self.recognized_text, True)
+                        self.status = typeEnum.STOP
                         break
 
-                    if language == 1:
-                        if "end" in self.recognized_text.lower():
-                            self.message = "Termination keyword detected. Ending..."
-                            callback(self.recognized_text, True)
-                            break
-                    else:
-                        if "koniec" in self.recognized_text.lower():
-                            self.message = "Wykryto słowo kończące. Zatrzymanie..."
-                            #print(self.message)
-                            self.end = True
-                            callback(self.recognized_text, True)
-                            break  
-
+                    if "end" in self.recognized_text.lower() or "koniec" in self.recognized_text.lower():
+                        self.status = typeEnum.END
+                
+                            
             self.stream.stop_stream()
             self.stream.close()
-
             self.p.terminate()
-            #print(self.message)
-            self.recognized_text = " ".join(self.recognized_text(" ", 1)[0:1])
+
+            match self.status:
+                case typeEnum.START:
+                    callback(self.recognized_text, typeEnum.START, True)
+                case typeEnum.STOP:
+                    callback(self.recognized_text, typeEnum.STOP, True)
+                case typeEnum.END:
+                    callback(self.recognized_text, typeEnum.END, True)
+                case default:
+                    pass   
         threading.Thread(target=recordAudio, daemon=True).start()
-        return self.recognized_text, self.message, self.end
