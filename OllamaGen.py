@@ -12,10 +12,16 @@ class OllamaGen():
                 stream = True,
             )
             collected_response = ""
+            i = 1
             for chunk in response:
                 if "message" in chunk and "content" in chunk["message"]:
                     collected_response += chunk["message"]["content"]
-                    callback(collected_response, False)
+                    c  = collected_response.split()
+                    num_of_el = len(c)
+                    if i != num_of_el:
+                        i+=1
+                        callback(collected_response, c[num_of_el-2], False)
+                    callback(collected_response, False, False)
                 
-            callback(collected_response, True)
+            callback(collected_response, False, True)
         threading.Thread(target=RespondFunc, daemon=True).start()

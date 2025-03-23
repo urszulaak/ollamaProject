@@ -19,12 +19,12 @@ class VoiceRecord():
                         channels=1,
                         rate=16000,
                         input=True,
-                        frames_per_buffer=8192)
+                        frames_per_buffer=1024)
         if status == typeEnum.START.value:
             if language == languageEnum.ENGLISH.value:
                 info = "stop - end of sentence, exit - end chat"
             else:
-                info = "stop - koniec sekwencji, wyjście - koniec rozmowy"
+                info = "stop - koniec sekwencji, koniec - koniec rozmowy"
         else:
             if language == languageEnum.ENGLISH.value:
                 info = "start - start conversation with AI"
@@ -40,7 +40,7 @@ class VoiceRecord():
         self.status= ""
         def recordAudio():
             while True:
-                data = self.stream.read(4096)
+                data = self.stream.read(1024)
                 if self.rec.AcceptWaveform(data):
                     result = json.loads(self.rec.Result())
                     self.recognized_text = result.get('text', '').strip()
