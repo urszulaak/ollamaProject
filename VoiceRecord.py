@@ -44,7 +44,7 @@ class VoiceRecord():
                 if self.rec.AcceptWaveform(data):
                     result = json.loads(self.rec.Result())
                     self.recognized_text = result.get('text', '').strip()
-                    print(self.recognized_text)
+                    callback(self.recognized_text, typeEnum.COMMAND, False)
                     
                     if "start" in self.recognized_text.lower():
                         self.status = typeEnum.START
@@ -56,6 +56,7 @@ class VoiceRecord():
 
                     if "end" in self.recognized_text.lower() or "koniec" in self.recognized_text.lower():
                         self.status = typeEnum.END
+                        break
                 
                             
             self.stream.stop_stream()
@@ -70,5 +71,5 @@ class VoiceRecord():
                 case typeEnum.END:
                     callback(self.recognized_text, typeEnum.END, True)
                 case default:
-                    pass   
+                    pass
         threading.Thread(target=recordAudio, daemon=True).start()

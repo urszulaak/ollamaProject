@@ -9,16 +9,13 @@ from OllamaGen import OllamaGen
 from enums import typeEnum, languageEnum
 import os
 import time
-import pyttsx3
-import pytdm
 
 class BasicApp(App):
 
-    def __init__(self, language, model_path, model_ai, **kwargs):
+    def __init__(self, language, model_path, **kwargs):
         super().__init__(**kwargs)
         self.language = language
         self.model_path = model_path
-        self.model_ai = model_ai
 
     def onRecognitionResult(self, recognized_text, status, end):
         if end:
@@ -31,34 +28,35 @@ class BasicApp(App):
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.STOP:
                 self.recognized_text_label.text = recognized_text.rsplit(' ', 1)[0]
-                self.model_generate.GenerateRespond(self.recognized_text_label.text, self.model_ai, self.onModelGenerate)
+                self.model_generate.GenerateRespond(self.recognized_text_label.text, self.language, self.onModelGenerate)
             elif status == typeEnum.END:
                 self.info_label.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
                 self.recognized_text_label.text = ""
                 self.model_answer_label.text = ""
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
+        else:
+            self.recognized_text_label.text = recognized_text
 
     def onModelGenerate(self, answer, chunk, end):
             if chunk:
                 self.collect_chunk.append(chunk)
-                # print(self.collect_chunk)
-                # if True:
-                if chunk[-1] == ".":
+                if chunk[-1] == "." or chunk[-1] == "!" or chunk[-1] == "?":
                     sentence = ' '.join(ch for ch in self.collect_chunk)
-                    print(sentence)
                     if self.language == languageEnum.ENGLISH.value:
-                    #     self.engine = pyttsx3.init()
-                    #     self.engine.say(sentence)
-                    #     self.engine.runAndWait()
                         os.system(f"espeak -v en-gb '{sentence}'")
                     else:
-                        # pytdm.mów(sentence, "fr")
                         os.system(f"espeak -v pl '{sentence}'")
                     self.collect_chunk.clear()
             else:
                 self.model_answer_label.text = answer
                 if end:
-                    self.i = 0
+                    if self.collect_chunk:
+                        sentence = ' '.join(self.collect_chunk)
+                        if self.language == languageEnum.ENGLISH.value:
+                            os.system(f"espeak -v en-gb '{sentence}'")
+                        else:
+                            os.system(f"espeak -v pl '{sentence}'")
+                        self.collect_chunk.clear()
                     self.info_label.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                     if self.language == languageEnum.ENGLISH.value:
                         self.recognized_text_label.text = "Recording..."

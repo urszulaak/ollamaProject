@@ -5,7 +5,8 @@ if __name__ == "__main__":
     exit_loop = True
     
     while exit_loop:
-        language = int(input("Choose Language (1-English, 2-Polish): "))
+        # language = int(input("Choose Language (1-English, 2-Polish): "))
+        language = 2
         if language == 1:
             model_path = "vosk-model-en-us-0.22-lgraph"
             model_ai = "llama3.1:8b"
@@ -17,5 +18,5 @@ if __name__ == "__main__":
         else:
             print("Wrong language")
 
-    app = BasicApp(language, model_path, model_ai)
+    app = BasicApp(language, model_path)
     app.run()
