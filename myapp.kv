@@ -10,16 +10,21 @@
         size_hint: 1, 0.1
         bold: True
 
-    # Obrazek
-    Image:
-        id: face_img
-        source: "exampleFaceStatic.png"
+    BoxLayout:
         size_hint: 1, 0.5
+        padding: 100
+        # Obrazek
+        Image:
+            id: face_img
+            source: "maska.png"
+            size_hint: 1, 1
 
     # Box na dwa teksty
     BoxLayout:
         orientation: "vertical"
         size_hint: 1, 0.4
+        padding: [0, 150, 0, 0]
+        spacing: 50
 
         Label:
             id: command
