@@ -1,5 +1,4 @@
-from BasicApp import BasicApp
-
+from MainApp import MyApp
 if __name__ == "__main__":
 
     exit_loop = True
@@ -18,5 +17,5 @@ if __name__ == "__main__":
         else:
             print("Wrong language")
 
-    app = BasicApp(language, model_path)
+    app = MainApp(language, model_path)
     app.run()

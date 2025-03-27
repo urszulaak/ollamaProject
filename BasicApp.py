@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image, AsyncImage
@@ -20,6 +21,7 @@ class BasicApp(App):
     def onRecognitionResult(self, recognized_text, status, end):
         if end:
             if status == typeEnum.START:
+                self.img.disabled = False
                 self.info_label.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                 if self.language == languageEnum.ENGLISH.value:
                     self.recognized_text_label.text = "Recording..."
@@ -33,6 +35,7 @@ class BasicApp(App):
                 self.info_label.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
                 self.recognized_text_label.text = ""
                 self.model_answer_label.text = ""
+                self.img.disabled = True
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
             self.recognized_text_label.text = recognized_text
@@ -70,23 +73,30 @@ class BasicApp(App):
         self.model_generate = OllamaGen()
 
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)
-        self.info_label = Label(text=self.info)
+        self.info_label = Label(text=self.info,
+                                font_size="24sp",
+                                size_hint=(1, 0.1),
+                                bold=True)
         layout.add_widget(self.info_label)
-
-        img = Image(source = 'exampleFaceStatic.png')
-        layout.add_widget(img)
+        self.img = Image(source = 'exampleFaceStatic.png')
+        layout.add_widget(self.img,
+                          size_hint=(1, 0.4))
         # img_gif = AsyncImage(source = "faceExample.gif")
         # layout.add_widget(img_gif)
 
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
         
-        self.recognized_text_label = Label(text="")
+        self.recognized_text_label = Label(text="",
+                                            font_size="18sp",
+                                            size_hint=(1, 0.15),
+                                            halign="center",
+                                            valign="middle")
         layout.add_widget(self.recognized_text_label)
         self.i = 0
         self.collect_chunk = []
         self.model_answer_label = Label(text="", 
-                                        text_size=(300,None), 
-                                        size_hint=(1, None),
+                                        font_size="18sp",
+                                        size_hint=(1, 0.35),
                                         halign="center",
                                         valign="middle")
         self.model_answer_label.bind(size=self.model_answer_label.setter("text_size"))
