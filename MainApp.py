@@ -25,7 +25,7 @@ class MyLayout(BoxLayout):
                     self.ids.command.text = "Recording..."
                 else:
                     self.ids.command.text = "Nagrywanie..."
-                self.voice_recorder.voiceRecord(self.onRecognitionResult)
+                self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
             elif status == typeEnum.STOP:
                 self.ids.command.text = recognized_text.rsplit(' ', 1)[0]
                 self.model_generate.GenerateRespond(self.ids.command.text, self.language, self.onModelGenerate)
@@ -63,7 +63,7 @@ class MyLayout(BoxLayout):
                         self.ids.command.text = "Recording..."
                     else:
                         self.ids.command.text = "Nagrywanie..."
-                    self.voice_recorder.voiceRecord(self.onRecognitionResult)
+                    self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
     
     def wlacz(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)

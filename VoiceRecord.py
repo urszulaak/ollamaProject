@@ -32,7 +32,7 @@ class VoiceRecord():
                 info = "start - rozpocznij rozmowę z AI"
         return info
 
-    def voiceRecord(self, callback):
+    def voiceRecord(self, callback, ifTalking=False):
         self.recognized_text = ""
         self.rec_text = ""
         self.message = ""
@@ -43,7 +43,11 @@ class VoiceRecord():
                 data = self.stream.read(1024)
                 if self.rec.AcceptWaveform(data):
                     result = json.loads(self.rec.Result())
-                    self.recognized_text = result.get('text', '').strip()
+                    if ifTalking:
+                        part_text = result.get('text', '').strip()
+                        self.recognized_text += (' '+part_text)
+                    else:
+                        self.recognized_text = result.get('text', '').strip()
                     callback(self.recognized_text, typeEnum.COMMAND, False)
                     
                     if "start" in self.recognized_text.lower():
