@@ -56,6 +56,11 @@ class MyLayout(BoxLayout):
             if status == typeEnum.START:
                 self.ids.columns.size_hint_y = 0.0
                 self.ids.model_response.size_hint_y = 0.8
+                for col_id in ['col1', 'col2', 'col3']:
+                    self.ids[f'{col_id}_img'].text = str("")
+                    self.ids[f'{col_id}_day'].text = str("")
+                    self.ids[f'{col_id}_desc'].text = str("")
+                    self.ids[f'{col_id}_H'].text = str("")
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                 if self.language == languageEnum.ENGLISH:
                     self.ids.command.text = "Recording..."
@@ -72,13 +77,12 @@ class MyLayout(BoxLayout):
                 self.ids.model_response.text = ""
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.WEATHER:
-                self.ids.model_response.size_hint_y = 0.1
-                self.ids.columns.size_hint_y = 0.7
-                self.ids.model_response.text = str(self.weather[0])
+                self.ids.model_response.size_hint_y = 0.2
+                self.ids.columns.size_hint_y = 0.6
                 columns = [
-                    ('col1', 1, 2, 3, 4),
-                    ('col2', 5, 6, 7, 8),
-                    ('col3', 9, 10, 11, 12)
+                    ('col1', 3, 4, 5, 6),
+                    ('col2', 7, 8, 9, 10),
+                    ('col3', 11, 12, 13, 14)
                 ]
                 for col_id, day_idx, img_idx, desc_idx, high_idx in columns:
                     self.ids[f'{col_id}_img'].text = str(self.weather[img_idx])
@@ -124,6 +128,9 @@ class MyLayout(BoxLayout):
         self.ids.header.text = self.info
         weather_panel = WeatherPanel("Bialystok", languageEnum.POLISH)
         self.weather = weather_panel.fetch_weather()
+        self.ids.weather_img.text = str(self.weather[0])
+        self.ids.weather_temp.text = str(self.weather[1])
+        self.ids.weather_desc.text = str(self.weather[2])
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):

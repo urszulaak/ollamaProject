@@ -22,14 +22,14 @@ class VoiceRecord():
                         frames_per_buffer=1024)
         if status == typeEnum.START.value:
             if language == languageEnum.ENGLISH.value:
-                info = "stop - end of sentence, exit - end chat"
+                info = "stop - end of sentence\nexit - end chat"
             else:
-                info = "stop - koniec sekwencji, koniec - koniec rozmowy"
+                info = "stop - koniec sekwencji\nkoniec - koniec rozmowy"
         else:
             if language == languageEnum.ENGLISH.value:
                 info = "start - start conversation with AI"
             else:
-                info = "start - rozpocznij rozmowę z AI, pogoda - wyświetl szczegółową prognozę pogody"
+                info = "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
         return info
 
     def voiceRecord(self, callback, ifTalking=False):

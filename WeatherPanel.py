@@ -1,4 +1,4 @@
-import python_weather
+import httpx
 from datetime import datetime
 import asyncio
 
@@ -9,81 +9,107 @@ class WeatherPanel():
   def __init__(self, city, language):
     self.city = city
     self.language = language
+    self.API_KEY = '3f80543cd98a46a6869172854250605'
 
   async def getweather(self) -> list:
-    # declare the client. the measuring unit used defaults to the metric system (celcius, km/h, etc.)
     placeholder = []
-    async with python_weather.Client(unit=python_weather.METRIC) as client:
-      # fetch a weather forecast from a city
 
-      KIND_POLISH_TRANSLATIONS = {
-        'Sunny': 'Słonecznie',
-        'Partly Cloudy': 'Częściowo Pochmurnie',
-        'Cloudy': 'Pochmurnie',
-        'Very Cloudy': 'Bardzo Pochmurnie',
-        'Fog': 'Mgła',
-        'Light Showers': 'Lekkie Przelotne Opady',
-        'Light Sleet Showers': 'Lekkie Przelotne Opady Deszczu ze Śniegiem',
-        'Light Sleet': 'Lekki Deszcz ze Śniegiem',
-        'Thundery Showers': 'Burzowe Przelotne Opady',
-        'Light Snow': 'Lekki Śnieg',
-        'Heavy Snow': 'Silny Śnieg',
-        'Light Rain': 'Lekki Deszcz',
-        'Heavy Showers': 'Silne Przelotne Opady',
-        'Heavy Rain': 'Silny Deszcz',
-        'Light Snow Showers': 'Lekkie Przelotne Opady Śniegu',
-        'Heavy Snow Showers': 'Silne Przelotne Opady Śniegu',
-        'Thundery Heavy Rain': 'Burzowy Silny Deszcz',
-        'Thundery Snow Showers': 'Burzowe Przelotne Opady Śniegu'
-      }
-      DAYS_POLISH_TRANSLATIONS = {
-        'Monday': 'Poneidziałek',
+    DAYS_POLISH_TRANSLATIONS = {
+        'Monday': 'Poniedziałek',
         'Tuesday': 'Wtorek',
         'Wednesday': 'Środa',
         'Thursday': 'Czwartek',
         'Friday': 'Piątek',
         'Saturday': 'Sobota',
         'Sunday': 'Niedziela'
-      }
-      weather_counts = {}
-      weather = await client.get(self.city)
-      print(weather.datetime)
-      print(weather.country)
-      # returns the current day's forecast temperature (int)
-      placeholder.append(f"Obecna temperatura: {weather.temperature}°C\n")
-      # get the weather forecast for a few days
-      for daily in weather:
-        day = daily.date.strftime("%A")
-        if languageEnum.POLISH:
-          placeholder.append(DAYS_POLISH_TRANSLATIONS.get(day, day))
+    }
+
+    url = 'http://api.weatherapi.com/v1/forecast.json'
+    params = {
+      'key': self.API_KEY,
+      'q': self.city,
+      'days': 3,
+      'lang': 'pl' if self.language == languageEnum.POLISH else 'en',
+      'aqi': 'no',
+      'alerts': 'no'
+    }
+
+    async with httpx.AsyncClient() as client:
+      response = await client.get(url, params=params)
+      data = response.json()
+
+      current = data['current']
+      forecast = data['forecast']['forecastday']
+
+      placeholder.append(self._map_condition_to_emoji(current['condition']['text']))
+      placeholder.append(f"{current['temp_c']}°C")
+      placeholder.append(f"{current['condition']['text']}")
+      
+      for day_data in forecast:
+        date_obj = datetime.strptime(day_data['date'], '%Y-%m-%d')
+        day_name = date_obj.strftime('%A')
+
+        if self.language == languageEnum.POLISH:
+          placeholder.append(DAYS_POLISH_TRANSLATIONS.get(day_name, day_name))
         else:
-          placeholder.append(day)
-        first_iteration = True
-        # hourly forecasts
-        for hourly in daily:
-          if first_iteration:
-            mini = hourly.temperature
-            maxi = hourly.temperature
-            first_iteration = False
-          else:
-            if hourly.temperature < mini:
-              mini = hourly.temperature
-            elif hourly.temperature > maxi:
-              maxi = hourly.temperature
-          weather_kind = hourly.kind
-          if weather_kind in weather_counts:
-              weather_counts[weather_kind] += 1
-          else:
-              weather_counts[weather_kind] = 1
-        max_weather = max(weather_counts, key=weather_counts.get)
-        placeholder.append(max_weather.emoji)
-        if languageEnum.POLISH:
-          placeholder.append(KIND_POLISH_TRANSLATIONS.get(str(max_weather), str(max_weather)))
-        else:
-          placeholder.append(max_weather)
-        placeholder.append(f'{maxi} °C / {mini} °C')
-        weather_counts = {}
+          placeholder.append(day_name)
+
+        condition = day_data['day']['condition']
+        description = condition['text']
+
+        max_temp = day_data['day']['maxtemp_c']
+        min_temp = day_data['day']['mintemp_c']
+
+        emoji_char = self._map_condition_to_emoji(description)
+
+        placeholder.append(emoji_char)
+        placeholder.append(description)
+        placeholder.append(f'{max_temp} °C / {min_temp} °C')
+
     return placeholder
-  
+
+  def _map_condition_to_emoji(self, description):
+    if self.language == languageEnum.POLISH:
+        mapping = {
+        'Słonecznie': '☀️',
+        'Bezchmurnie': '☀️',
+        'Częściowe zachmurzenie': '⛅️',
+        'Pochmurnie': '☁️',
+        'Zachmurzenie całkowite': '☁️',
+        'Mgła': '🌫',
+        'Możliwe miejscowe opady deszczu': '🌦',
+        'Lekki deszcz': '🌦',
+        'Umiarkowany deszcz': '🌧',
+        'Silny deszcz': '🌧',
+        'Możliwe miejscowe opady śniegu': '🌨',
+        'Lekki śnieg': '🌨',
+        'Umiarkowany śnieg': '❄️',
+        'Silny śnieg': '❄️',
+        'Możliwe miejscowe burze': '⛈',
+        'Umiarkowany lub silny deszcz z burzą': '⛈',
+        'Miejscowy lekki deszcz z burzą': '⛈'
+        }
+    else:
+        mapping = {
+        'Sunny': '☀️',
+        'Clear': '☀️',
+        'Partly cloudy': '⛅️',
+        'Cloudy': '☁️',
+        'Overcast': '☁️',
+        'Mist': '🌫',
+        'Patchy rain possible': '🌦',
+        'Light rain': '🌦',
+        'Moderate rain': '🌧',
+        'Heavy rain': '🌧',
+        'Patchy snow possible': '🌨',
+        'Light snow': '🌨',
+        'Moderate snow': '❄️',
+        'Heavy snow': '❄️',
+        'Thundery outbreaks possible': '⛈',
+        'Moderate or heavy rain with thunder': '⛈',
+        'Patchy light rain with thunder': '⛈'
+        }
+    return mapping.get(description, '✨')
+
   def fetch_weather(self):
     return asyncio.run(self.getweather())
