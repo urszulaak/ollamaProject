@@ -54,6 +54,8 @@ class MyLayout(BoxLayout):
     def onRecognitionResult(self, recognized_text, status, end):
         if end:
             if status == typeEnum.START:
+                self.ids.columns.size_hint_y = 0.0
+                self.ids.model_response.size_hint_y = 0.1
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                 if self.language == languageEnum.ENGLISH:
                     self.ids.command.text = "Recording..."
@@ -68,30 +70,24 @@ class MyLayout(BoxLayout):
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
-                # self.ids.face_img.opacity = 0
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.WEATHER:
                 self.ids.model_response.size_hint_y = 0.1
                 self.ids.columns.size_hint_y = 0.7
                 self.ids.model_response.text = str(self.weather[0])
-                self.ids.col1_img.text = str(self.weather[2])
-                self.ids.col1_day.text = str(self.weather[1])
-                self.ids.col1_desc.text = str(self.weather[3])
-                self.ids.col1_H.text = str(self.weather[4])
-                self.ids.col1_L.text = str(self.weather[5])
-
-                self.ids.col2_img.text = str(self.weather[7])
-                self.ids.col2_day.text = str(self.weather[6])
-                self.ids.col2_desc.text = str(self.weather[8])
-                self.ids.col2_H.text = str(self.weather[9])
-                self.ids.col2_L.text = str(self.weather[10])
-
-                self.ids.col3_img.text = str(self.weather[12])
-                self.ids.col3_day.text = str(self.weather[11])
-                self.ids.col3_desc.text = str(self.weather[13])
-                self.ids.col3_H.text = str(self.weather[14])
-                self.ids.col3_L.text = str(self.weather[15])
-
+                columns = [
+                    ('col1', 1, 2, 3, 4, 5),
+                    ('col2', 6, 7, 8, 9, 10),
+                    ('col3', 11, 12, 13, 14, 15)
+                ]
+                for col_id, day_idx, img_idx, desc_idx, high_idx, low_idx in columns:
+                    self.ids[f'{col_id}_img'].text = str(self.weather[img_idx])
+                    self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
+                    self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
+                    self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
+                    self.ids[f'{col_id}_L'].text = str(self.weather[low_idx])
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
+                self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
             self.ids.command.text = recognized_text
 
@@ -128,8 +124,7 @@ class MyLayout(BoxLayout):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)
         self.ids.header.text = self.info
         weather_panel = WeatherPanel("Bialystok", languageEnum.POLISH)
-        self.weather = weather_panel.fetch_weather() 
-        # self.ids.face_img.opacity = 0
+        self.weather = weather_panel.fetch_weather()
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):
