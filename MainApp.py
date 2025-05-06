@@ -76,16 +76,15 @@ class MyLayout(BoxLayout):
                 self.ids.columns.size_hint_y = 0.7
                 self.ids.model_response.text = str(self.weather[0])
                 columns = [
-                    ('col1', 1, 2, 3, 4, 5),
-                    ('col2', 6, 7, 8, 9, 10),
-                    ('col3', 11, 12, 13, 14, 15)
+                    ('col1', 1, 2, 3, 4),
+                    ('col2', 5, 6, 7, 8),
+                    ('col3', 9, 10, 11, 12)
                 ]
-                for col_id, day_idx, img_idx, desc_idx, high_idx, low_idx in columns:
+                for col_id, day_idx, img_idx, desc_idx, high_idx in columns:
                     self.ids[f'{col_id}_img'].text = str(self.weather[img_idx])
                     self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
                     self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
                     self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
-                    self.ids[f'{col_id}_L'].text = str(self.weather[low_idx])
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
