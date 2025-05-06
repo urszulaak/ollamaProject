@@ -29,7 +29,7 @@ class VoiceRecord():
             if language == languageEnum.ENGLISH.value:
                 info = "start - start conversation with AI"
             else:
-                info = "start - rozpocznij rozmowę z AI"
+                info = "start - rozpocznij rozmowę z AI, pogoda - wyświetl szczegółową prognozę pogody"
         return info
 
     def voiceRecord(self, callback, ifTalking=False):
@@ -61,19 +61,16 @@ class VoiceRecord():
                     if "end" in self.recognized_text.lower() or "koniec" in self.recognized_text.lower():
                         self.status = typeEnum.END
                         break
+
+                    if "weather" in self.recognized_text.lower() or "pogoda" in self.recognized_text.lower():
+                        self.status = typeEnum.WEATHER
+                        break
                 
                             
             self.stream.stop_stream()
             self.stream.close()
             self.p.terminate()
+            
+            callback(self.recognized_text, self.status, True)
 
-            match self.status:
-                case typeEnum.START:
-                    callback(self.recognized_text, typeEnum.START, True)
-                case typeEnum.STOP:
-                    callback(self.recognized_text, typeEnum.STOP, True)
-                case typeEnum.END:
-                    callback(self.recognized_text, typeEnum.END, True)
-                case default:
-                    pass
         threading.Thread(target=recordAudio, daemon=True).start()

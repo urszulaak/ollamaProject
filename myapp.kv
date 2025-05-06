@@ -1,36 +1,36 @@
 <MyLayout>:
     orientation: "vertical"
-    padding: 10
+    padding: 8
 
     # Tekst na górze
     Label:
         id: header
         text: "To jest nagłówek"
-        font_size: "24sp"
-        size_hint: 1, 0.1
+        font_size: "27sp"
+        size_hint_y: 0.1
         bold: True
 
     BoxLayout:
-        size_hint: 1, 0.5
+        size_hint_y: 0.4
         padding: 100
         # Obrazek
         Image:
             id: face_img
             source: "mask_full_smile.png"
-            size_hint: 1, 1
+            size_hint_y: 1
 
     # Box na dwa teksty
     BoxLayout:
         orientation: "vertical"
-        size_hint: 1, 0.4
+        size_hint_y: 0.5
         padding: [0, 150, 0, 0]
         spacing: 50
 
         Label:
             id: command
             text: ""
-            font_size: "24sp"
-            size_hint: 1, 0.1
+            font_size: "30sp"
+            size_hint_y: 0.2
             halign: "center"
             valign: "middle"
             text_size: self.size
@@ -39,9 +39,146 @@
         Label:
             id: model_response
             text: ""
-            font_size: "24sp"
-            size_hint: 1, 0.9
+            font_size: "30sp"
+            size_hint_y: 0.1
             halign: "center"
             valign: "top"
             text_size: self.size
             wrap: True
+        
+        GridLayout:
+            id: columns
+            cols: 3
+            size_hint_y: 0.0
+            
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    id: col1_img
+                    text: ""
+                    size_hint_y: 0.4
+                    font_name: "EmojiFont"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col1_day
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "30sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col1_desc
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "25sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                GridLayout:
+                    cols: 2
+                    size_hint_y: 0.2
+                    Label:
+                        id: col1_H
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+                    Label:
+                        id: col1_L
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+            
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    id: col2_img
+                    text: ""
+                    size_hint_y: 0.4
+                    font_name: "EmojiFont"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col2_day
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "30sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col2_desc
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "25sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                GridLayout:
+                    cols: 2
+                    size_hint_y: 0.2
+                    Label:
+                        id: col2_H
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+                    Label:
+                        id: col2_L
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+                        
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    id: col3_img
+                    text: ""
+                    size_hint_y: 0.4
+                    font_name: "EmojiFont"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col3_day
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "30sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                Label:
+                    id: col3_desc
+                    size_hint_y: 0.2
+                    text:""
+                    font_size: "25sp"
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+                GridLayout:
+                    cols: 2
+                    size_hint_y: 0.2
+                    Label:
+                        id: col3_H
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size
+                    Label:
+                        id: col3_L
+                        text:""
+                        font_size: "20sp"
+                        halign: "center"
+                        valign: "middle"
+                        text_size: self.size

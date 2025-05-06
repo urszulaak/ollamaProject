@@ -2,11 +2,13 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.core.text import LabelBase
 from VoiceRecord import VoiceRecord
 from OllamaGen import OllamaGen
+from WeatherPanel import WeatherPanel
 from enums import typeEnum, languageEnum
-import time
 import os
+LabelBase.register(name="EmojiFont", fn_regular="NotoColorEmoji.ttf")
 
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
@@ -22,7 +24,7 @@ class MyLayout(BoxLayout):
         self.img_animation_sources = ["mask_O.png", "mask_half_smile.png", "mask_full_smile.png"]
         self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
         self.punctuation_mark = [".", "!", "?", ","]
-    
+
     def change_img(self, name):
         self.ids.face_img.source = name
         self.ids.face_img.reload()
@@ -42,7 +44,6 @@ class MyLayout(BoxLayout):
         self.ids.face_img.source = source
         self.ids.face_img.reload()
         self.img_animation_index = (self.img_animation_index + 1) % len(self.img_animation_sources)
-
 
     def stop_img_animation(self):
         if self.img_animation_event:
@@ -69,6 +70,28 @@ class MyLayout(BoxLayout):
                 self.ids.model_response.text = ""
                 # self.ids.face_img.opacity = 0
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
+            elif status == typeEnum.WEATHER:
+                self.ids.model_response.size_hint_y = 0.1
+                self.ids.columns.size_hint_y = 0.7
+                self.ids.model_response.text = str(self.weather[0])
+                self.ids.col1_img.text = str(self.weather[2])
+                self.ids.col1_day.text = str(self.weather[1])
+                self.ids.col1_desc.text = str(self.weather[3])
+                self.ids.col1_H.text = str(self.weather[4])
+                self.ids.col1_L.text = str(self.weather[5])
+
+                self.ids.col2_img.text = str(self.weather[7])
+                self.ids.col2_day.text = str(self.weather[6])
+                self.ids.col2_desc.text = str(self.weather[8])
+                self.ids.col2_H.text = str(self.weather[9])
+                self.ids.col2_L.text = str(self.weather[10])
+
+                self.ids.col3_img.text = str(self.weather[12])
+                self.ids.col3_day.text = str(self.weather[11])
+                self.ids.col3_desc.text = str(self.weather[13])
+                self.ids.col3_H.text = str(self.weather[14])
+                self.ids.col3_L.text = str(self.weather[15])
+
         else:
             self.ids.command.text = recognized_text
 
@@ -104,6 +127,8 @@ class MyLayout(BoxLayout):
     def wlacz(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)
         self.ids.header.text = self.info
+        weather_panel = WeatherPanel("Bialystok", languageEnum.POLISH)
+        self.weather = weather_panel.fetch_weather() 
         # self.ids.face_img.opacity = 0
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
