@@ -55,7 +55,7 @@ class MyLayout(BoxLayout):
         if end:
             if status == typeEnum.START:
                 self.ids.columns.size_hint_y = 0.0
-                self.ids.model_response.size_hint_y = 0.1
+                self.ids.model_response.size_hint_y = 0.8
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                 if self.language == languageEnum.ENGLISH:
                     self.ids.command.text = "Recording..."
