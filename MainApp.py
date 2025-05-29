@@ -14,8 +14,12 @@ class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.language = languageEnum.POLISH
-        self.model_path = "vosk-model-small-pl-0.22"
-        self.model_ai = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
+        if self.language == languageEnum.ENGLISH:
+            self.model_path = "vosk-model-en-us-0.22-lgraph"
+            self.model_ai = "llama3.1:8b"
+        else:
+            self.model_path = "vosk-model-small-pl-0.22"
+            self.model_ai = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
         self.collect_chunk = []
         self.voice_recorder = VoiceRecord()
         self.model_generate = OllamaGen()
@@ -24,6 +28,7 @@ class MyLayout(BoxLayout):
         self.img_animation_sources = ["mask_O.png", "mask_half_smile.png", "mask_full_smile.png"]
         self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
         self.punctuation_mark = [".", "!", "?", ","]
+        self.fisrt_sentence = False
 
     def change_img(self, name):
         self.ids.face_img.source = name
@@ -54,13 +59,13 @@ class MyLayout(BoxLayout):
     def onRecognitionResult(self, recognized_text, status, end):
         if end:
             if status == typeEnum.START:
-                self.ids.columns.size_hint_y = 0.0
-                self.ids.model_response.size_hint_y = 0.8
                 for col_id in ['col1', 'col2', 'col3']:
                     self.ids[f'{col_id}_img'].text = str("")
                     self.ids[f'{col_id}_day'].text = str("")
                     self.ids[f'{col_id}_desc'].text = str("")
                     self.ids[f'{col_id}_H'].text = str("")
+                self.ids.columns.size_hint_y = 0.2
+                self.ids.model_response.size_hint_y = 0.6
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
                 if self.language == languageEnum.ENGLISH:
                     self.ids.command.text = "Recording..."
@@ -96,32 +101,48 @@ class MyLayout(BoxLayout):
 
     def onModelGenerate(self, answer, chunk, end):
             if chunk:
-                self.collect_chunk.append(chunk)
-                if chunk in self.punctuation or chunk[-1] in self.punctuation_mark:
-                    if chunk in self.punctuation:
-                        self.collect_chunk.pop()
-                    sentence = ' '.join(ch for ch in self.collect_chunk)
-                    self.start_img_animation()
-                    if self.language == languageEnum.ENGLISH.value:
-                        os.system(f"espeak -v en-gb '{sentence}'")
-                    else:
-                        os.system(f"espeak -v pl '{sentence}'")
-                    self.stop_img_animation()
-                    self.collect_chunk.clear()
-                    if chunk in self.punctuation:
-                        self.collect_chunk.append(chunk)
-            else:
-                self.ids.model_response.text = answer
-                if end:
-                    if self.collect_chunk:
-                        sentence = ' '.join(self.collect_chunk)
+                if not self.fisrt_sentence:
+                    self.collect_chunk.append(chunk)
+                    if chunk[-1] in [".","?","!"]:
+                        self.fisrt_sentence = True
+                        sentence = ' '.join(ch for ch in self.collect_chunk)
+                        self.ids.model_response.text = answer[:answer.rfind(" ")]
                         self.start_img_animation()
                         if self.language == languageEnum.ENGLISH.value:
                             os.system(f"espeak -v en-gb '{sentence}'")
                         else:
                             os.system(f"espeak -v pl '{sentence}'")
                         self.stop_img_animation()
-                    self.onRecognitionResult("", typeEnum.START, True)
+                        self.collect_chunk.clear()
+                else:
+                    self.collect_chunk.append(chunk)
+                    if chunk in self.punctuation or chunk[-1] in self.punctuation_mark:
+                        if chunk in self.punctuation:
+                            self.collect_chunk.pop()
+                        sentence = ' '.join(ch for ch in self.collect_chunk)
+                        self.start_img_animation()
+                        if self.language == languageEnum.ENGLISH.value:
+                            os.system(f"espeak -v en-gb '{sentence}'")
+                        else:
+                            os.system(f"espeak -v pl '{sentence}'")
+                        self.stop_img_animation()
+                        self.collect_chunk.clear()
+                        if chunk in self.punctuation:
+                            self.collect_chunk.append(chunk)
+            else:
+                if self.fisrt_sentence:
+                    self.ids.model_response.text = answer
+                    if end:
+                        if self.collect_chunk:
+                            sentence = ' '.join(self.collect_chunk)
+                            self.start_img_animation()
+                            if self.language == languageEnum.ENGLISH.value:
+                                os.system(f"espeak -v en-gb '{sentence}'")
+                            else:
+                                os.system(f"espeak -v pl '{sentence}'")
+                            self.stop_img_animation()
+                        self.fisrt_sentence = False
+                        self.onRecognitionResult("", typeEnum.START, True)
     
     def wlacz(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)

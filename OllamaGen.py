@@ -6,7 +6,8 @@ class OllamaGen():
         file_path=""
         model_ai=""
         if language == 1:
-            pass
+            file_path = './system_note_eng.txt'
+            model_ai = "llama3.1:8b"
         else:
             file_path = './system_note_pl.txt'
             model_ai = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
