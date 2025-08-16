@@ -1,8 +1,7 @@
+import time
 import httpx
 from datetime import datetime
 import asyncio
-
-from enums import languageEnum
 
 class WeatherPanel():
 
@@ -10,6 +9,8 @@ class WeatherPanel():
     self.city = city
     self.language = language
     self.API_KEY = '3f80543cd98a46a6869172854250605'
+    self._last_fetch = 0
+    self._cached_data = None
 
   async def getweather(self) -> list:
     placeholder = []
@@ -29,7 +30,7 @@ class WeatherPanel():
       'key': self.API_KEY,
       'q': self.city,
       'days': 3,
-      'lang': 'pl' if self.language == languageEnum.POLISH else 'en',
+      'lang': self.language,
       'aqi': 'no',
       'alerts': 'no'
     }
@@ -49,7 +50,7 @@ class WeatherPanel():
         date_obj = datetime.strptime(day_data['date'], '%Y-%m-%d')
         day_name = date_obj.strftime('%A')
 
-        if self.language == languageEnum.POLISH:
+        if self.language == 'pl':
           placeholder.append(DAYS_POLISH_TRANSLATIONS.get(day_name, day_name))
         else:
           placeholder.append(day_name)
@@ -69,7 +70,7 @@ class WeatherPanel():
     return placeholder
 
   def _map_condition_to_emoji(self, description):
-    if self.language == languageEnum.POLISH:
+    if self.language == 'pl':
         mapping = {
         'Słonecznie': '☀️',
         'Bezchmurnie': '☀️',
@@ -112,4 +113,8 @@ class WeatherPanel():
     return mapping.get(description, '✨')
 
   def fetch_weather(self):
-    return asyncio.run(self.getweather())
+    if time.time() - self._last_fetch < 600 and self._cached_data:
+      return self._cached_data
+    self._cached_data = asyncio.run(self.getweather())
+    self._last_fetch = time.time()
+    return self._cached_data

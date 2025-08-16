@@ -2,7 +2,7 @@ import vosk
 import pyaudio
 import json
 import threading
-from enums import typeEnum, languageEnum
+from enums import typeEnum
 
 class VoiceRecord():
     def __init__(self):
@@ -21,15 +21,9 @@ class VoiceRecord():
                         input=True,
                         frames_per_buffer=1024)
         if status == typeEnum.START.value:
-            if language == languageEnum.ENGLISH.value:
-                info = "stop - end of sentence\nexit - end chat"
-            else:
-                info = "stop - koniec sekwencji\nkoniec - koniec rozmowy"
+            info = language["stop"]
         else:
-            if language == languageEnum.ENGLISH.value:
-                info = "start - start conversation with AI"
-            else:
-                info = "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
+            info = language["start"]
         return info
 
     def voiceRecord(self, callback, ifTalking=False):
@@ -38,6 +32,15 @@ class VoiceRecord():
         self.message = ""
         self.type = ""
         self.status= ""
+        self.breakPoint = False
+        self.COMMANDS = {
+            "start": typeEnum.START,
+            "stop": typeEnum.STOP,
+            "end": typeEnum.END,
+            "koniec": typeEnum.WEATHER,
+            "weather": typeEnum.WEATHER,
+            "pogoda": typeEnum.WEATHER
+        }
         def recordAudio():
             while True:
                 data = self.stream.read(1024)
@@ -50,20 +53,14 @@ class VoiceRecord():
                         self.recognized_text = result.get('text', '').strip()
                     callback(self.recognized_text, typeEnum.COMMAND, False)
                     
-                    if "start" in self.recognized_text.lower():
-                        self.status = typeEnum.START
-                        break
-                    
-                    if "stop" in self.recognized_text.lower():
-                        self.status = typeEnum.STOP
-                        break
-
-                    if "end" in self.recognized_text.lower() or "koniec" in self.recognized_text.lower():
-                        self.status = typeEnum.END
-                        break
-
-                    if "weather" in self.recognized_text.lower() or "pogoda" in self.recognized_text.lower():
-                        self.status = typeEnum.WEATHER
+                    for word,status in self.COMMANDS.items():
+                        if word in self.recognized_text.lower():
+                            self.status = status
+                            self.breakPoint = True
+                            break
+                            
+                    if self.breakPoint:
+                        self.breakPoint = False
                         break
                 
                             

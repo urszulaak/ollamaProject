@@ -7,19 +7,52 @@ from VoiceRecord import VoiceRecord
 from OllamaGen import OllamaGen
 from WeatherPanel import WeatherPanel
 from enums import typeEnum, languageEnum
+import subprocess
+import threading
 import os
+
 LabelBase.register(name="EmojiFont", fn_regular="NotoColorEmoji.ttf")
+
+MODELS = {
+    languageEnum.ENGLISH: {
+        "vosk": "vosk-model-en-us-0.22-lgraph",
+        "ai": {
+            "ollama_model": "llama3.1:8b",
+            "note": "./system_note_eng.txt"
+        },
+        "espeak": "en-gb",
+        "record": "Recording...",
+        "lang": "en",
+        "info": {
+            "start": "start - start conversation with AI",
+            "stop": "stop - end of sentence\nexit - end chat"
+        }
+    },
+    languageEnum.POLISH: {
+        "vosk": "vosk-model-small-pl-0.22",
+        "ai": {
+            "ollama_model": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
+            "note": "./system_note_pl.txt"
+        },
+        "espeak": "pl",
+        "record": "Nagrywanie...",
+        "lang": "pl",
+        "info": {
+            "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody",
+            "stop": "stop - koniec sekwencji\nkoniec - koniec rozmowy"
+        }
+    },
+}
 
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.language = languageEnum.POLISH
-        if self.language == languageEnum.ENGLISH:
-            self.model_path = "vosk-model-en-us-0.22-lgraph"
-            self.model_ai = "llama3.1:8b"
-        else:
-            self.model_path = "vosk-model-small-pl-0.22"
-            self.model_ai = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
+        self.config = MODELS[self.language]
+        self.model_path = self.config["vosk"]
+        self.model_ai = self.config["ai"]
+        self.espeak_lang = self.config["espeak"]
+        self.recording = self.config["record"]
         self.collect_chunk = []
         self.voice_recorder = VoiceRecord()
         self.model_generate = OllamaGen()
@@ -27,7 +60,7 @@ class MyLayout(BoxLayout):
         self.img_animation_index = 0
         self.img_animation_sources = ["mask_O.png", "mask_half_smile.png", "mask_full_smile.png"]
         self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
-        self.punctuation_mark = [".", "!", "?", ","]
+        self.punctuation_mark = [".", "!", "?", ",", "-"]
         self.fisrt_sentence = False
 
     def change_img(self, name):
@@ -66,18 +99,15 @@ class MyLayout(BoxLayout):
                     self.ids[f'{col_id}_H'].text = str("")
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
-                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language, typeEnum.START.value)
-                if self.language == languageEnum.ENGLISH:
-                    self.ids.command.text = "Recording..."
-                else:
-                    self.ids.command.text = "Nagrywanie..."
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
+                self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
             elif status == typeEnum.STOP:
                 self.ids.command.text = recognized_text.rsplit(' ', 1)[0]
                 Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
-                self.model_generate.GenerateRespond(self.ids.command.text, self.language, self.onModelGenerate)
+                self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.onModelGenerate)
             elif status == typeEnum.END:
-                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
@@ -94,25 +124,25 @@ class MyLayout(BoxLayout):
                     self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
                     self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
                     self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
-                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.language)
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
             self.ids.command.text = recognized_text
+
+    def speak(self, sentence):
+        self.start_img_animation()
+        os.system(f"espeak -v {self.espeak_lang} '{sentence}'")
+        self.stop_img_animation()
 
     def onModelGenerate(self, answer, chunk, end):
             if chunk:
                 if not self.fisrt_sentence:
                     self.collect_chunk.append(chunk)
-                    if chunk[-1] in [".","?","!"]:
+                    if chunk[-1] in self.punctuation_mark:
                         self.fisrt_sentence = True
                         sentence = ' '.join(ch for ch in self.collect_chunk)
                         self.ids.model_response.text = answer[:answer.rfind(" ")]
-                        self.start_img_animation()
-                        if self.language == languageEnum.ENGLISH.value:
-                            os.system(f"espeak -v en-gb '{sentence}'")
-                        else:
-                            os.system(f"espeak -v pl '{sentence}'")
-                        self.stop_img_animation()
+                        self.speak(sentence)
                         self.collect_chunk.clear()
                 else:
                     self.collect_chunk.append(chunk)
@@ -120,12 +150,7 @@ class MyLayout(BoxLayout):
                         if chunk in self.punctuation:
                             self.collect_chunk.pop()
                         sentence = ' '.join(ch for ch in self.collect_chunk)
-                        self.start_img_animation()
-                        if self.language == languageEnum.ENGLISH.value:
-                            os.system(f"espeak -v en-gb '{sentence}'")
-                        else:
-                            os.system(f"espeak -v pl '{sentence}'")
-                        self.stop_img_animation()
+                        self.speak(sentence)
                         self.collect_chunk.clear()
                         if chunk in self.punctuation:
                             self.collect_chunk.append(chunk)
@@ -135,19 +160,14 @@ class MyLayout(BoxLayout):
                     if end:
                         if self.collect_chunk:
                             sentence = ' '.join(self.collect_chunk)
-                            self.start_img_animation()
-                            if self.language == languageEnum.ENGLISH.value:
-                                os.system(f"espeak -v en-gb '{sentence}'")
-                            else:
-                                os.system(f"espeak -v pl '{sentence}'")
-                            self.stop_img_animation()
+                            self.speak(sentence)
                         self.fisrt_sentence = False
                         self.onRecognitionResult("", typeEnum.START, True)
     
-    def wlacz(self, dt):
-        self.info = self.voice_recorder.voiceInitial(self.model_path, self.language)
+    def open(self, dt):
+        self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
-        weather_panel = WeatherPanel("Bialystok", languageEnum.POLISH)
+        weather_panel = WeatherPanel("Bialystok", self.config["lang"])
         self.weather = weather_panel.fetch_weather()
         self.ids.weather_img.text = str(self.weather[0])
         self.ids.weather_temp.text = str(self.weather[1])
@@ -158,7 +178,7 @@ class MyApp(App):
 
     def build(self):
         myLayout = MyLayout()
-        Clock.schedule_once(myLayout.wlacz,0)
+        Clock.schedule_once(myLayout.open,0)
         return myLayout
 
 if __name__ == "__main__":

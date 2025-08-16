@@ -5,12 +5,8 @@ class OllamaGen():
     def GenerateRespond(self, recognized_text, language, callback):
         file_path=""
         model_ai=""
-        if language == 1:
-            file_path = './system_note_eng.txt'
-            model_ai = "llama3.1:8b"
-        else:
-            file_path = './system_note_pl.txt'
-            model_ai = "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M"
+        file_path = language["note"]
+        model_ai = language["ollama_model"]
         with open(file_path, 'r') as file:
             system_note = file.read()
         ollama.create(model="ai_model", from_=model_ai, system=system_note)
