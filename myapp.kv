@@ -2,8 +2,8 @@
     orientation: "vertical"
     padding: 8
 
-    GridLayout:
-        cols: 3
+    BoxLayout:
+        orientation: "horizontal"
         size_hint_y: 0.15
         BoxLayout:
             size_hint_x: 0.2
@@ -16,13 +16,22 @@
                 font_size: "27sp"
                 text_size: self.size
             Label:
-                id: weather_desc
+                id: weather_H
                 text: ""
-                size_hint_y: 0.2
-                valgin: "top"
+                size_hint_y: 0.1
                 font_size: "20sp"
                 text_size: self.size
                 bold: True
+            Label:
+                id: weather_desc
+                text: ""
+                size_hint_y: 0.1
+                halign: "left"
+                valgin: "top"
+                font_size: "24sp"
+                text_size: self.size
+                bold: True
+
         Label:
             id: header
             text: ""
@@ -31,14 +40,36 @@
             font_size: "27sp"
             size_hint_x: 0.6
             bold: True
-        Label:
-            id: time
-            text: ""
-            halign: "right"
-            valign: "middle"
-            font_size: "27sp"
+        BoxLayout:
             size_hint_x: 0.2
-            bold: True
+            orientation: "vertical"
+            Label:
+                id: time
+                text: ""
+                size_hint_y: 0.7
+                halign: "right"
+                valgin: "bottom"
+                font_size: "70sp"
+                text_size: self.size
+                bold: True
+            Label:
+                id: date
+                text: ""
+                size_hint_y: 0.2
+                halign: "right"
+                valgin: "top"
+                font_size: "24sp"
+                text_size: self.size
+                bold: True
+            Label:
+                id: datex
+                text: ""
+                size_hint_y: 0.1
+                halign: "right"
+                valgin: "top"
+                font_size: "24sp"
+                text_size: self.size
+                bold: True
 
     BoxLayout:
         id: image_box

@@ -176,13 +176,14 @@ class MyLayout(BoxLayout):
         self.ids.header.text = self.info
         if hasattr(self, 'time_uptader'):
             self.time_updater.stop()
-        self.time_updater = TimeUpdater(self.ids.time)
+        self.time_updater = TimeUpdater(self.ids.time, self.ids.date)
         self.time_updater.start()
         try:
             weather_panel = WeatherPanel("Bialystok", self.config["lang"])
             self.weather = weather_panel.fetch_weather()
             self.ids.weather_img.text = str(self.weather[0])
-            self.ids.weather_desc.text = f"{str(self.weather[1])}\n{str(self.weather[2])}"
+            self.ids.weather_H.text = str(self.weather[1])
+            self.ids.weather_desc.text = str(self.weather[2])
         except:
             self.ids.weather_desc.text = self.config["no_connection"]
             self.no_connection = True
