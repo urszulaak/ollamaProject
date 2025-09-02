@@ -24,9 +24,10 @@ MODELS = {
         "record": "Recording...",
         "lang": "en",
         "info": {
-            "start": "start - start conversation with AI",
+            "start": "start - start conversation with AI\nweather - detailed weather forecat",
             "stop": "stop - end of sentence\nexit - end chat"
-        }
+        },
+        "no_connection": "No internet connection"
     },
     languageEnum.POLISH: {
         "vosk": "vosk-model-small-pl-0.22",
@@ -40,14 +41,15 @@ MODELS = {
         "info": {
             "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody",
             "stop": "stop - koniec sekwencji\nkoniec - koniec rozmowy"
-        }
+        },
+        "no_connection": "Brak dostępu do internetu"
     },
 }
 
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.language = languageEnum.POLISH
+        self.language = languageEnum.ENGLISH
         self.config = MODELS[self.language]
         self.model_path = self.config["vosk"]
         self.model_ai = self.config["ai"]
@@ -62,6 +64,7 @@ class MyLayout(BoxLayout):
         self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
         self.punctuation_mark = [".", "!", "?", ",", "-"]
         self.fisrt_sentence = False
+        self.no_connection = False
 
     def change_img(self, name):
         self.ids.face_img.source = name
@@ -112,20 +115,23 @@ class MyLayout(BoxLayout):
                 self.ids.model_response.text = ""
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.WEATHER:
-                self.ids.model_response.size_hint_y = 0.2
-                self.ids.columns.size_hint_y = 0.6
-                columns = [
-                    ('col1', 3, 4, 5, 6),
-                    ('col2', 7, 8, 9, 10),
-                    ('col3', 11, 12, 13, 14)
-                ]
-                for col_id, day_idx, img_idx, desc_idx, high_idx in columns:
-                    self.ids[f'{col_id}_img'].text = str(self.weather[img_idx])
-                    self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
-                    self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
-                    self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
-                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
-                self.voice_recorder.voiceRecord(self.onRecognitionResult)
+                if self.no_connection:
+                    self.ids.model_response.text =  self.config["no_connection"]
+                else:
+                    self.ids.model_response.size_hint_y = 0.2
+                    self.ids.columns.size_hint_y = 0.6
+                    columns = [
+                        ('col1', 3, 4, 5, 6),
+                        ('col2', 7, 8, 9, 10),
+                        ('col3', 11, 12, 13, 14)
+                    ]
+                    for col_id, day_idx, img_idx, desc_idx, high_idx in columns:
+                        self.ids[f'{col_id}_img'].text = str(self.weather[img_idx])
+                        self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
+                        self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
+                        self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
+                    self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
+                    self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
             self.ids.command.text = recognized_text
 
@@ -167,11 +173,15 @@ class MyLayout(BoxLayout):
     def open(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
-        weather_panel = WeatherPanel("Bialystok", self.config["lang"])
-        self.weather = weather_panel.fetch_weather()
-        self.ids.weather_img.text = str(self.weather[0])
-        self.ids.weather_temp.text = str(self.weather[1])
-        self.ids.weather_desc.text = str(self.weather[2])
+        try:
+            weather_panel = WeatherPanel("Bialystok", self.config["lang"])
+            self.weather = weather_panel.fetch_weather()
+            self.ids.weather_img.text = str(self.weather[0])
+            self.ids.weather_temp.text = str(self.weather[1])
+            self.ids.weather_desc.text = str(self.weather[2])
+        except:
+            self.ids.weather_desc.text = self.config["no_connection"]
+            self.no_connection = True
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):

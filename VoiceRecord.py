@@ -39,6 +39,7 @@ class VoiceRecord():
             "end": typeEnum.END,
             "koniec": typeEnum.WEATHER,
             "weather": typeEnum.WEATHER,
+            "whether": typeEnum.WEATHER,
             "pogoda": typeEnum.WEATHER
         }
         def recordAudio():
