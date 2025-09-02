@@ -6,6 +6,7 @@ from kivy.core.text import LabelBase
 from VoiceRecord import VoiceRecord
 from OllamaGen import OllamaGen
 from WeatherPanel import WeatherPanel
+from TimeUpdater import TimeUpdater
 from enums import typeEnum, languageEnum
 import subprocess
 import threading
@@ -49,7 +50,7 @@ MODELS = {
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.language = languageEnum.ENGLISH
+        self.language = languageEnum.POLISH
         self.config = MODELS[self.language]
         self.model_path = self.config["vosk"]
         self.model_ai = self.config["ai"]
@@ -173,12 +174,15 @@ class MyLayout(BoxLayout):
     def open(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
+        if hasattr(self, 'time_uptader'):
+            self.time_updater.stop()
+        self.time_updater = TimeUpdater(self.ids.time)
+        self.time_updater.start()
         try:
             weather_panel = WeatherPanel("Bialystok", self.config["lang"])
             self.weather = weather_panel.fetch_weather()
             self.ids.weather_img.text = str(self.weather[0])
-            self.ids.weather_temp.text = str(self.weather[1])
-            self.ids.weather_desc.text = str(self.weather[2])
+            self.ids.weather_desc.text = f"{str(self.weather[1])}\n{str(self.weather[2])}"
         except:
             self.ids.weather_desc.text = self.config["no_connection"]
             self.no_connection = True

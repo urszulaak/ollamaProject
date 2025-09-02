@@ -80,6 +80,7 @@ class WeatherPanel():
         'Częściowe zachmurzenie': '⛅️',
         'Pochmurnie': '☁️',
         'Zachmurzenie całkowite': '☁️',
+        'Zachmurzenie': '☁️',
         'Mgła': '🌫',
         'Możliwe miejscowe opady deszczu': '🌦',
         'Miejscowe opady deszczu w pobliżu': '🌦',

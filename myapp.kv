@@ -6,40 +6,38 @@
         cols: 3
         size_hint_y: 0.15
         BoxLayout:
-            size_hint_x: 0.3
+            size_hint_x: 0.2
             orientation: "vertical"
             Label:
                 id: weather_img
                 text: ""
-                size_hint_y: 0.6
+                size_hint_y: 0.8
                 font_name: "EmojiFont"
                 font_size: "27sp"
-                text_size: self.size
-            Label:
-                id: weather_temp
-                text: ""
-                size_hint_y: 0.2
-                font_size: "20sp"
                 text_size: self.size
             Label:
                 id: weather_desc
                 text: ""
                 size_hint_y: 0.2
+                valgin: "top"
                 font_size: "20sp"
                 text_size: self.size
+                bold: True
         Label:
             id: header
             text: ""
             halign: "center"
             valign: "middle"
             font_size: "27sp"
-            size_hint_x: 0.4
+            size_hint_x: 0.6
             bold: True
         Label:
             id: time
             text: ""
+            halign: "right"
+            valign: "middle"
             font_size: "27sp"
-            size_hint_x: 0.3
+            size_hint_x: 0.2
             bold: True
 
     BoxLayout:
