@@ -1,14 +1,17 @@
 import time
 import httpx
+import json
 from datetime import datetime
 import asyncio
 
 class WeatherPanel():
 
   def __init__(self, city, language):
+    with open("APIKeys.json", "r") as f:
+      apikeys = json.load(f)
     self.city = city
     self.language = language
-    self.API_KEY = '3f80543cd98a46a6869172854250605'
+    self.API_KEY = apikeys["WeatherAPI"]
     self._last_fetch = 0
     self._cached_data = None
 
