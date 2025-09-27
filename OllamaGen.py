@@ -16,9 +16,6 @@ class OllamaGen():
             messages.extend(chat_history)
         else:
             messages.append({"role":"user","content": recognized_text})
-        print("--------------------------------------------")
-        print(messages)
-        print("--------------------------------------------")
 
         def RespondFunc():
             response = ollama.chat(
@@ -38,7 +35,9 @@ class OllamaGen():
                         callback(collected_response, c[num_of_el-2], False)
                     else:
                         callback(collected_response, False, False)
-                
-            callback(collected_response, c[num_of_el-1], False)
+            try:
+                callback(collected_response, c[num_of_el-1], False)
+            except ValueError:
+                print("ValueError",c)
             callback(collected_response, False, True)
         threading.Thread(target=RespondFunc, daemon=True).start()

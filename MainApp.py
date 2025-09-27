@@ -106,7 +106,6 @@ class MyLayout(BoxLayout):
                     self.ids[f'{col_id}_H'].text = str("")
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
-                self.chat_history.clear()
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
@@ -115,9 +114,6 @@ class MyLayout(BoxLayout):
                 self.ids.command.text = user_message
                 Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
                 self.chat_history.append({"role": "user", "content": user_message})
-                print("yyyyyyyyyyyyyy")
-                print(self.chat_history)
-                print("yyyyyyyyyyyyyy")
                 self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
@@ -178,7 +174,6 @@ class MyLayout(BoxLayout):
                     self.ids.model_response.text = answer
                     if end:
                         self.chat_history.append({"role": "assistant", "content": answer})
-                        print(self.chat_history)
                         if self.collect_chunk:
                             sentence = ' '.join(self.collect_chunk)
                             self.speak(sentence)
