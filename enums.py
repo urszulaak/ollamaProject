@@ -6,6 +6,7 @@ class typeEnum(Enum):
     START = 3
     COMMAND = 4
     WEATHER = 5
+    NEWS = 6
 
 class languageEnum(Enum):
     ENGLISH = 1

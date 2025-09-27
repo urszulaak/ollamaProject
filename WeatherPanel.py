@@ -13,11 +13,9 @@ class WeatherPanel:
         self.language = language
         self.API_KEY = apikeys["WeatherAPI"]
 
-        # cache
         self._last_fetch = 0
         self._cached_data = None
 
-        # executor do wątków
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     async def getweather(self) -> list:

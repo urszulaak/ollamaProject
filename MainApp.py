@@ -13,6 +13,7 @@ from enums import typeEnum, languageEnum
 import subprocess
 import threading
 import os
+import feedparser
 
 LabelBase.register(name="EmojiFont", fn_regular="NotoColorEmoji.ttf")
 
@@ -141,6 +142,15 @@ class MyLayout(BoxLayout):
                         self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
                     self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                     self.voice_recorder.voiceRecord(self.onRecognitionResult)
+            elif status == typeEnum.NEWS:
+                rss_url = "https://poranny.pl/rss/kurierporanny.xml"
+                feed = feedparser.parse(rss_url)
+                title = []
+                for entry in feed.entries:
+                    title.append(entry.title)
+                print(title)
+                self.ids.model_response.text = ("\n".join(title))
+
         else:
             self.ids.command.text = recognized_text
 
