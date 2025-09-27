@@ -2,7 +2,7 @@ import ollama
 import threading
 
 class OllamaGen():
-    def GenerateRespond(self, recognized_text, language, callback):
+    def GenerateRespond(self, recognized_text, language, callback, chat_history=None):
         file_path=""
         model_ai=""
         file_path = language["note"]
@@ -10,12 +10,20 @@ class OllamaGen():
         with open(file_path, 'r') as file:
             system_note = file.read()
         ollama.create(model="ai_model", from_=model_ai, system=system_note)
+
+        messages = []
+        if chat_history:
+            messages.extend(chat_history)
+        else:
+            messages.append({"role":"user","content": recognized_text})
+        print("--------------------------------------------")
+        print(messages)
+        print("--------------------------------------------")
+
         def RespondFunc():
             response = ollama.chat(
                 model="ai_model",
-                messages=[
-                    {"role": "user", "content": recognized_text},
-                ],
+                messages=messages,
                 stream = True,
             )
             collected_response = ""

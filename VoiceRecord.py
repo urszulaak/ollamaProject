@@ -37,7 +37,7 @@ class VoiceRecord():
             "start": typeEnum.START,
             "stop": typeEnum.STOP,
             "end": typeEnum.END,
-            "koniec": typeEnum.WEATHER,
+            "koniec": typeEnum.END,
             "weather": typeEnum.WEATHER,
             "whether": typeEnum.WEATHER,
             "pogoda": typeEnum.WEATHER

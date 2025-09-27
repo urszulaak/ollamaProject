@@ -5,8 +5,10 @@ from kivy.clock import Clock
 from kivy.core.text import LabelBase
 from VoiceRecord import VoiceRecord
 from OllamaGen import OllamaGen
+from datetime import datetime
+from Updater import Updater
+from WeatherUpdater import WeatherUpdater
 from WeatherPanel import WeatherPanel
-from TimeUpdater import TimeUpdater
 from enums import typeEnum, languageEnum
 import subprocess
 import threading
@@ -50,6 +52,7 @@ MODELS = {
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.chat_history = []
         self.language = languageEnum.POLISH
         self.config = MODELS[self.language]
         self.model_path = self.config["vosk"]
@@ -103,19 +106,28 @@ class MyLayout(BoxLayout):
                     self.ids[f'{col_id}_H'].text = str("")
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
+                self.chat_history.clear()
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
             elif status == typeEnum.STOP:
-                self.ids.command.text = recognized_text.rsplit(' ', 1)[0]
+                user_message = recognized_text.rsplit(' ', 1)[0]
+                self.ids.command.text = user_message
                 Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
-                self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.onModelGenerate)
+                self.chat_history.append({"role": "user", "content": user_message})
+                print("yyyyyyyyyyyyyy")
+                print(self.chat_history)
+                print("yyyyyyyyyyyyyy")
+                self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
+                self.chat_history.clear()
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.WEATHER:
+                weather_panel = WeatherPanel("Bialystok", self.config["lang"])
+                self.weather = weather_panel.fetch_weather()
                 if self.no_connection:
                     self.ids.model_response.text =  self.config["no_connection"]
                 else:
@@ -165,28 +177,40 @@ class MyLayout(BoxLayout):
                 if self.fisrt_sentence:
                     self.ids.model_response.text = answer
                     if end:
+                        self.chat_history.append({"role": "assistant", "content": answer})
+                        print(self.chat_history)
                         if self.collect_chunk:
                             sentence = ' '.join(self.collect_chunk)
                             self.speak(sentence)
                         self.fisrt_sentence = False
                         self.onRecognitionResult("", typeEnum.START, True)
-    
+
+    def update_time(self):
+        now = datetime.now()
+        self.ids.time.text = now.strftime("%H:%M")
+        self.ids.date.text = now.strftime("%d.%m.%Y")
+
     def open(self, dt):
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
-        if hasattr(self, 'time_uptader'):
-            self.time_updater.stop()
-        self.time_updater = TimeUpdater(self.ids.time, self.ids.date)
+        self.time_updater = Updater(
+            1, 
+            strategy=lambda: self.update_time()
+        )
         self.time_updater.start()
-        try:
-            weather_panel = WeatherPanel("Bialystok", self.config["lang"])
-            self.weather = weather_panel.fetch_weather()
-            self.ids.weather_img.text = str(self.weather[0])
-            self.ids.weather_H.text = str(self.weather[1])
-            self.ids.weather_desc.text = str(self.weather[2])
-        except:
-            self.ids.weather_desc.text = self.config["no_connection"]
-            self.no_connection = True
+
+        self.weather_updater = WeatherUpdater(
+            3600,
+            "Bialystok",
+            self.config["lang"],
+            {
+                "img": self.ids.weather_img,
+                "temp": self.ids.weather_H,
+                "desc": self.ids.weather_desc
+            },
+            WeatherPanel("Bialystok", self.config["lang"])
+        )
+        self.weather_updater.start()
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):
