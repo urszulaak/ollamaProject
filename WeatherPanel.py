@@ -79,7 +79,7 @@ class WeatherPanel:
             'Słonecznie': '☀️',
             'Bezchmurnie': '☀️',
             'Częściowe zachmurzenie': '⛅️',
-            'Pochmurnie': '☁️',
+            'Pochmurno': '☁️',
             'Zachmurzenie całkowite': '☁️',
             'Zachmurzenie': '☁️',
             'Mgła': '🌫',

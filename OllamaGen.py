@@ -10,6 +10,9 @@ class OllamaGen():
         with open(file_path, 'r') as file:
             system_note = file.read()
         system_note += str(news)
+        print("------------------------------")
+        print(system_note)
+        print("------------------------------")
         ollama.create(model="ai_model", from_=model_ai, system=system_note)
 
         messages = []

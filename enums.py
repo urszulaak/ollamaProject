@@ -9,6 +9,7 @@ class typeEnum(Enum):
     NEWS = 6
     NEXT_NEWS = 7
     EXPAND_NEWS = 8
+    CLEAR_BUFFER = 9
 
 class languageEnum(Enum):
     ENGLISH = 1

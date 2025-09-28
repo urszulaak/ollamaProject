@@ -28,7 +28,7 @@ MODELS = {
         "info": {
             "start": "start - start conversation with AI\nweather - detailed weather forecat\nnews - NBC News",
             "stop": "stop - end of sentence\nexit - end chat",
-            "news": "next - next news\n expand - expand news\nexit - exit news"
+            "news": "next - next news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
         },
         "no_connection": "No internet connection"
     },
@@ -44,7 +44,7 @@ MODELS = {
         "info": {
             "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody\nwiadomości - Wiadomości Kurier Poranny",
             "stop": "stop - koniec sekwencji\nkoniec - koniec rozmowy",
-            "news": "następna - następna wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość"
+            "news": "następna - następna wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość\nstart - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
         },
         "no_connection": "Brak dostępu do internetu"
     },
@@ -71,7 +71,8 @@ class MyLayout(BoxLayout):
         self.fisrt_sentence = False
         self.no_connection = False
         self.expanded_news = False
-
+        self.news_view = False
+        self.ai_view = False
     def change_img(self, name):
         self.ids.face_img.source = name
         self.ids.face_img.reload()
@@ -111,35 +112,41 @@ class MyLayout(BoxLayout):
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
                 self.ids.face_img.size_hint_y=1
-                self.expanded_news = False
+                self.ai_view = True
                 self.ids.model_response.text = ""
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
-            elif status == typeEnum.STOP:
+            elif status == typeEnum.STOP and self.ai_view:
                 user_message = recognized_text.rsplit(' ', 1)[0]
                 self.ids.command.text = user_message
                 Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
                 self.chat_history.append({"role": "user", "content": user_message})
                 self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.rss_panel.data, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
-                self.expanded_news = False
+                if self.ai_view:
+                    self.ai_view = False
+                else:
+                    self.news_view = False
+                    self.expanded_news = False
                 self.ids.content.size_hint_y = 0.5
                 self.ids.image_box.size_hint_y = 0.35
                 self.ids.model_response.size_hint_y = 0.2
                 self.ids.columns.size_hint_y = 0.6
+                self.ids.face_img.size_hint_y=0
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
                 self.chat_history.clear()
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
-            elif status == typeEnum.WEATHER:
+            elif status == typeEnum.WEATHER and not self.ai_view:
                 self.weather = self.weather_updater._last_data
                 if self.no_connection:
                     self.ids.model_response.text =  self.config["no_connection"]
                 else:
                     self.ids.model_response.size_hint_y = 0.2
                     self.ids.columns.size_hint_y = 0.6
+                    self.ids.face_img.size_hint_y=0
                     columns = [
                         ('col1', 3, 4, 5, 6),
                         ('col2', 7, 8, 9, 10),
@@ -150,32 +157,41 @@ class MyLayout(BoxLayout):
                         self.ids[f'{col_id}_day'].text = str(self.weather[day_idx])
                         self.ids[f'{col_id}_desc'].text = str(self.weather[desc_idx])
                         self.ids[f'{col_id}_H'].text = str(self.weather[high_idx])
-                    self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
+                    if self.news_view:
+                        self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
+                    else:
+                        self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                     self.voice_recorder.voiceRecord(self.onRecognitionResult)
-            elif status == typeEnum.NEWS:
+            elif status == typeEnum.NEWS and not self.ai_view:
+                self.news_view = True
                 self.ids.model_response.size_hint_y = 0.2
                 self.ids.columns.size_hint_y = 0.6
+                self.ids.face_img.size_hint_y=0
                 self.rss_dict = self.rss_panel.data
                 self.news = iter(self.rss_dict.keys())
                 self.actuall_news = next(self.news)
                 self.ids.model_response.text = self.actuall_news
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
-            elif status == typeEnum.EXPAND_NEWS:
+            elif status == typeEnum.EXPAND_NEWS and self.news_view:
                 self.expanded_news = True
                 self.ids.content.size_hint_y = 0.75
                 self.ids.image_box.size_hint_y = 0.1
                 self.ids.model_response.size_hint_y = 0.45
                 self.ids.columns.size_hint_y = 0.35
+                self.ids.face_img.size_hint_y=0
                 self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
-            elif status == typeEnum.NEXT_NEWS:
+            elif status == typeEnum.NEXT_NEWS and self.news_view:
                 self.actuall_news = next(self.news)
-                if self.expanded_news:
-                    self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
-                else:
-                    self.ids.model_response.text = self.actuall_news
+                self.ids.face_img.size_hint_y=0
+                def update_news(dt):
+                    if self.expanded_news:
+                        self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
+                    else:
+                        self.ids.model_response.text = self.actuall_news
+                Clock.schedule_once(update_news)
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
@@ -224,7 +240,7 @@ class MyLayout(BoxLayout):
 
 
     def open(self, dt):
-        self.ids.face_img.size_hint_y=0
+        self.ids.face_img.size_hint_y = 0
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
         self.time_updater = Updater(
