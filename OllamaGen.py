@@ -2,13 +2,14 @@ import ollama
 import threading
 
 class OllamaGen():
-    def GenerateRespond(self, recognized_text, language, callback, chat_history=None):
+    def GenerateRespond(self, recognized_text, language, news, callback, chat_history=None):
         file_path=""
         model_ai=""
         file_path = language["note"]
         model_ai = language["ollama_model"]
         with open(file_path, 'r') as file:
             system_note = file.read()
+        system_note += str(news)
         ollama.create(model="ai_model", from_=model_ai, system=system_note)
 
         messages = []

@@ -22,6 +22,8 @@ class VoiceRecord():
                         frames_per_buffer=1024)
         if status == typeEnum.START.value:
             info = language["stop"]
+        elif status == typeEnum.NEWS.value:
+            info = language["news"]
         else:
             info = language["start"]
         return info
@@ -42,7 +44,11 @@ class VoiceRecord():
             "whether": typeEnum.WEATHER,
             "pogoda": typeEnum.WEATHER,
             "wiadomości": typeEnum.NEWS,
-            "news": typeEnum.NEWS
+            "news": typeEnum.NEWS,
+            "rozwiń": typeEnum.EXPAND_NEWS,
+            "expand": typeEnum.EXPAND_NEWS,
+            "następna": typeEnum.NEXT_NEWS,
+            "next": typeEnum.NEXT_NEWS
         }
         def recordAudio():
             while True:

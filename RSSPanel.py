@@ -1,5 +1,5 @@
 import feedparser
-from Updater import Updater
+import html
 
 class RSSUpdater:
     def __init__(self, rss_url, limit=19):
@@ -14,7 +14,8 @@ class RSSUpdater:
             for entry in feed.entries[:self.limit]:
                 title = entry.title
                 description = getattr(entry, "summary", "")
-                rss_dict[title] = description
+                decoded_desc = html.unescape(description)
+                rss_dict[title] = decoded_desc
             self.data = rss_dict
             return rss_dict
         except Exception as e:
