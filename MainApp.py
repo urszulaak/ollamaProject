@@ -9,7 +9,7 @@ from datetime import datetime
 from Updater import Updater
 from WeatherUpdater import WeatherUpdater
 from WeatherPanel import WeatherPanel
-from RSSPanel import RSSPanel
+from RSSPanel import RSSUpdater
 from enums import typeEnum, languageEnum
 import subprocess
 import threading
@@ -145,13 +145,8 @@ class MyLayout(BoxLayout):
                     self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                     self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.NEWS:
-                rss_url = "https://poranny.pl/rss/kurierporanny.xml"
-                feed = feedparser.parse(rss_url)
-                title = []
-                for entry in feed.entries[:1]:
-                    title.append(entry.title)
-                # print(title)
-                self.ids.model_response.text = ("\n".join(title))
+                rss_dict = self.rss_panel.fetch_rss()
+                self.ids.model_response.text = next(iter(rss_dict))
 
         else:
             self.ids.command.text = recognized_text
@@ -221,10 +216,10 @@ class MyLayout(BoxLayout):
         self.weather_updater.start()
 
         if self.language == languageEnum.POLISH:
-            self.rss_panel = RSSPanel("https://poranny.pl/rss/kurierporanny.xml")
+            self.rss_panel = RSSUpdater("https://poranny.pl/rss/kurierporanny.xml")
         else:
-            self.rss_panel = RSSPanel("https://feeds.nbcnews.com/nbcnews.com")
-        self.rss_updaet = Updater(
+            self.rss_panel = RSSUpdater("https://feeds.nbcnews.com/nbcnews.com")
+        self.rss_updater = Updater(
             3600,
             strategy=self.rss_panel.fetch_rss
         )

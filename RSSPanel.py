@@ -7,7 +7,7 @@ class RSSUpdater:
         self.limit = limit
         self.data = {}
 
-    def fetch_rss(self, limit=19):
+    def fetch_rss(self):
         try:
             feed = feedparser.parse(self.rss_url)
             rss_dict = {}
