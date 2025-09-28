@@ -46,7 +46,8 @@ class VoiceRecord():
             "expand": typeEnum.EXPAND_NEWS,
             "następna": typeEnum.NEXT_NEWS,
             "next": typeEnum.NEXT_NEWS,
-            "wyczyść": "CLEAR_BUFFER"
+            "wyczyść": "CLEAR_BUFFER",
+            "clear": "CLEAR_BUFFER"
         }
         def recordAudio():
             buffer_text = ""

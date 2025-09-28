@@ -27,7 +27,7 @@ MODELS = {
         "lang": "en",
         "info": {
             "start": "start - start conversation with AI\nweather - detailed weather forecat\nnews - NBC News",
-            "stop": "stop - end of sentence\nexit - end chat",
+            "stop": "stop - end of sentence\nclear - clear sentence\nexit - end chat",
             "news": "next - next news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
         },
         "no_connection": "No internet connection"
@@ -43,7 +43,7 @@ MODELS = {
         "lang": "pl",
         "info": {
             "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody\nwiadomości - Wiadomości Kurier Poranny",
-            "stop": "stop - koniec sekwencji\nkoniec - koniec rozmowy",
+            "stop": "stop - koniec sekwencji\nwyczyść - wyczyść sekwencje\nkoniec - koniec rozmowy",
             "news": "następna - następna wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość\nstart - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
         },
         "no_connection": "Brak dostępu do internetu"
