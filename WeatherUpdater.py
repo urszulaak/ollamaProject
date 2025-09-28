@@ -24,5 +24,3 @@ class WeatherUpdater(Updater):
             self.labels["img"].text = str(weather[0])
             self.labels["temp"].text = str(weather[1])
             self.labels["desc"].text = str(weather[2])
-        else:
-            self.labels["desc"].text = "Brak połączenia"

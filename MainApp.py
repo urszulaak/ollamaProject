@@ -145,9 +145,11 @@ class MyLayout(BoxLayout):
                     self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                     self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.NEWS:
+                self.ids.model_response.size_hint_y = 0.2
+                self.ids.columns.size_hint_y = 0.6
                 rss_dict = self.rss_panel.fetch_rss()
-                self.ids.model_response.text = next(iter(rss_dict))
-
+                first_key = next(iter(rss_dict))
+                self.ids.model_response.text = first_key
         else:
             self.ids.command.text = recognized_text
 
@@ -192,6 +194,7 @@ class MyLayout(BoxLayout):
         self.ids.time.text = now.strftime("%H:%M")
         self.ids.date.text = now.strftime("%d.%m.%Y")
 
+
     def open(self, dt):
         self.ids.face_img.size_hint_y=0
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
@@ -221,7 +224,7 @@ class MyLayout(BoxLayout):
             self.rss_panel = RSSUpdater("https://feeds.nbcnews.com/nbcnews.com")
         self.rss_updater = Updater(
             3600,
-            strategy=self.rss_panel.fetch_rss
+            strategy = lambda: self.rss_panel.fetch_rss()
         )
         self.rss_updater.start()
 
