@@ -9,6 +9,7 @@ from datetime import datetime
 from Updater import Updater
 from WeatherUpdater import WeatherUpdater
 from WeatherPanel import WeatherPanel
+from RSSPanel import RSSPanel
 from enums import typeEnum, languageEnum
 import subprocess
 import threading
@@ -28,7 +29,7 @@ MODELS = {
         "record": "Recording...",
         "lang": "en",
         "info": {
-            "start": "start - start conversation with AI\nweather - detailed weather forecat",
+            "start": "start - start conversation with AI\nweather - detailed weather forecat\nnews - NBC News",
             "stop": "stop - end of sentence\nexit - end chat"
         },
         "no_connection": "No internet connection"
@@ -43,7 +44,7 @@ MODELS = {
         "record": "Nagrywanie...",
         "lang": "pl",
         "info": {
-            "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody",
+            "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody\nwiadomości - Wiadomości Kurier Poranny",
             "stop": "stop - koniec sekwencji\nkoniec - koniec rozmowy"
         },
         "no_connection": "Brak dostępu do internetu"
@@ -107,6 +108,7 @@ class MyLayout(BoxLayout):
                     self.ids[f'{col_id}_H'].text = str("")
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
+                self.ids.face_img.size_hint_y=1
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
@@ -146,9 +148,9 @@ class MyLayout(BoxLayout):
                 rss_url = "https://poranny.pl/rss/kurierporanny.xml"
                 feed = feedparser.parse(rss_url)
                 title = []
-                for entry in feed.entries:
+                for entry in feed.entries[:1]:
                     title.append(entry.title)
-                print(title)
+                # print(title)
                 self.ids.model_response.text = ("\n".join(title))
 
         else:
@@ -196,6 +198,7 @@ class MyLayout(BoxLayout):
         self.ids.date.text = now.strftime("%d.%m.%Y")
 
     def open(self, dt):
+        self.ids.face_img.size_hint_y=0
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
         self.ids.header.text = self.info
         self.time_updater = Updater(
@@ -216,6 +219,17 @@ class MyLayout(BoxLayout):
             WeatherPanel("Bialystok", self.config["lang"])
         )
         self.weather_updater.start()
+
+        if self.language == languageEnum.POLISH:
+            self.rss_panel = RSSPanel("https://poranny.pl/rss/kurierporanny.xml")
+        else:
+            self.rss_panel = RSSPanel("https://feeds.nbcnews.com/nbcnews.com")
+        self.rss_updaet = Updater(
+            3600,
+            strategy=self.rss_panel.fetch_rss
+        )
+        self.rss_updater.start()
+
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):
