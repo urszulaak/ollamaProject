@@ -70,6 +70,7 @@ class MyLayout(BoxLayout):
         self.punctuation_mark = [".", "!", "?", ",", "-"]
         self.fisrt_sentence = False
         self.no_connection = False
+        self.expanded_news = False
 
     def change_img(self, name):
         self.ids.face_img.source = name
@@ -110,6 +111,7 @@ class MyLayout(BoxLayout):
                 self.ids.columns.size_hint_y = 0.2
                 self.ids.model_response.size_hint_y = 0.6
                 self.ids.face_img.size_hint_y=1
+                self.expanded_news = False
                 self.ids.model_response.text = ""
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.START.value)
                 self.ids.command.text = self.recording
@@ -121,6 +123,11 @@ class MyLayout(BoxLayout):
                 self.chat_history.append({"role": "user", "content": user_message})
                 self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.rss_panel.data, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
+                self.expanded_news = False
+                self.ids.content.size_hint_y = 0.5
+                self.ids.image_box.size_hint_y = 0.35
+                self.ids.model_response.size_hint_y = 0.2
+                self.ids.columns.size_hint_y = 0.6
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"])
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
@@ -149,16 +156,26 @@ class MyLayout(BoxLayout):
                 self.ids.model_response.size_hint_y = 0.2
                 self.ids.columns.size_hint_y = 0.6
                 self.rss_dict = self.rss_panel.data
-                self.actuall_news = next(iter(self.rss_dict))
+                self.news = iter(self.rss_dict.keys())
+                self.actuall_news = next(self.news)
                 self.ids.model_response.text = self.actuall_news
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.EXPAND_NEWS:
+                self.expanded_news = True
                 self.ids.content.size_hint_y = 0.75
                 self.ids.image_box.size_hint_y = 0.1
                 self.ids.model_response.size_hint_y = 0.45
                 self.ids.columns.size_hint_y = 0.35
                 self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
+                self.voice_recorder.voiceRecord(self.onRecognitionResult)
+            elif status == typeEnum.NEXT_NEWS:
+                self.actuall_news = next(self.news)
+                if self.expanded_news:
+                    self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
+                else:
+                    self.ids.model_response.text = self.actuall_news
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
         else:
@@ -238,7 +255,6 @@ class MyLayout(BoxLayout):
             strategy = self.rss_panel.fetch_rss
         )
         self.rss_updater.start()
-
         self.voice_recorder.voiceRecord(self.onRecognitionResult)
 
 class MyApp(App):

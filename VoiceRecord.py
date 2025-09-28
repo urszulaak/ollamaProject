@@ -19,7 +19,7 @@ class VoiceRecord():
                         channels=1,
                         rate=16000,
                         input=True,
-                        frames_per_buffer=1024)
+                        frames_per_buffer=300)
         if status == typeEnum.START.value:
             info = language["stop"]
         elif status == typeEnum.NEWS.value:
@@ -52,7 +52,7 @@ class VoiceRecord():
         }
         def recordAudio():
             while True:
-                data = self.stream.read(1024)
+                data = self.stream.read(300)
                 if self.rec.AcceptWaveform(data):
                     result = json.loads(self.rec.Result())
                     if ifTalking:

@@ -14,6 +14,7 @@ class RSSUpdater:
             for entry in feed.entries[:self.limit]:
                 title = entry.title
                 description = getattr(entry, "summary", "")
+                description = description.replace("&amp;","&")
                 decoded_desc = html.unescape(description)
                 rss_dict[title] = decoded_desc
             self.data = rss_dict
