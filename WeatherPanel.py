@@ -83,6 +83,7 @@ class WeatherPanel:
             'Zachmurzenie całkowite': '☁️',
             'Zachmurzenie': '☁️',
             'Mgła': '🌫',
+            'Zamglenie': '🌫',
             'Możliwe miejscowe opady deszczu': '🌦',
             'Miejscowe opady deszczu w pobliżu': '🌦',
             'Lekki deszcz': '🌦',

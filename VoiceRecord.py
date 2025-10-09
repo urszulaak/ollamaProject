@@ -2,7 +2,6 @@ import vosk
 import pyaudio
 import json
 import threading
-from kivy.clock import Clock
 from enums import typeEnum
 
 class VoiceRecord():
@@ -31,6 +30,10 @@ class VoiceRecord():
 
     def voiceRecord(self, callback, ifTalking=False):
         self.recognized_text = ""
+        self.rec_text = ""
+        self.message = ""
+        self.type = ""
+        self.status= ""
         self.breakPoint = False
         self.COMMANDS = {
             "start": typeEnum.START,
@@ -46,54 +49,55 @@ class VoiceRecord():
             "expand": typeEnum.EXPAND_NEWS,
             "następna": typeEnum.NEXT_NEWS,
             "next": typeEnum.NEXT_NEWS,
+            "poprzednia": typeEnum.PREVIOUS_NEWS,
+            "previous": typeEnum.PREVIOUS_NEWS
+        }
+        self.aiCOMMANDS= {
+            "start": typeEnum.START,
+            "stop": typeEnum.STOP,
+            "end": typeEnum.END,
+            "koniec": typeEnum.END,
             "wyczyść": "CLEAR_BUFFER",
             "clear": "CLEAR_BUFFER"
         }
         def recordAudio():
-            buffer_text = ""
             while True:
-                data = self.stream.read(1024, exception_on_overflow=False)
+                data = self.stream.read(1024)
                 if self.rec.AcceptWaveform(data):
                     result = json.loads(self.rec.Result())
-                    text = result.get('text', '').strip()
-                    if ifTalking:
-                        self.recognized_text += (' '+text)
-                        Clock.schedule_once(lambda dt: callback(self.recognized_text, typeEnum.COMMAND, False))
-                    else:
-                        buffer_text = text
-                        Clock.schedule_once(lambda dt: callback(buffer_text, typeEnum.COMMAND, False))
-                    
-                else:
-                    partial = json.loads(self.rec.PartialResult())
-                    part_text = partial.get('partial','').strip()
-                    if part_text:
-                        if ifTalking:
-                           Clock.schedule_once(lambda dt: callback(self.recognized_text + ' ' + part_text, typeEnum.COMMAND, False)) 
-                        else:
-                            buffer_text = part_text
-                            Clock.schedule_once(lambda dt: callback(buffer_text, typeEnum.COMMAND, False)) 
 
-                check_text = self.recognized_text if ifTalking else buffer_text
-                for word,status in self.COMMANDS.items():
-                    if word in check_text.lower():
-                        if status == "CLEAR_BUFFER" and ifTalking:
-                            self.recognized_text = ""
-                            Clock.schedule_once(lambda dt: callback("", typeEnum.COMMAND, False))
-                        else:
-                            self.status = status
-                            self.breakPoint = True
+                    if ifTalking:
+                        part_text = result.get('text', '').strip()
+                        self.recognized_text += (' '+part_text)
+                    else:
+                        self.recognized_text = result.get('text', '').strip()
+                    callback(self.recognized_text, typeEnum.COMMAND, False)
+                    
+                    if ifTalking:
+                        for word,status in self.aiCOMMANDS.items():
+                            if word in self.recognized_text.lower():
+                                if status == "CLEAR_BUFFER":
+                                    self.recognized_text = ""
+                                else:
+                                    self.status = status
+                                    self.breakPoint = True
+                                break
+                    else:
+                        for word,status in self.COMMANDS.items():
+                            if word in self.recognized_text.lower():
+                                self.status = status
+                                self.breakPoint = True
+                                break
+                            
+                    if self.breakPoint:
+                        self.breakPoint = False
                         break
-                        
-                if self.breakPoint:
-                    self.breakPoint = False
-                    break
                 
                             
             self.stream.stop_stream()
             self.stream.close()
             self.p.terminate()
             
-            final_text = self.recognized_text if ifTalking else buffer_text
-            Clock.schedule_once(lambda dt: callback(final_text, self.status, True))
+            callback(self.recognized_text, self.status, True)
 
         threading.Thread(target=recordAudio, daemon=True).start()

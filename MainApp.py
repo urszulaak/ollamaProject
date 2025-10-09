@@ -28,7 +28,7 @@ MODELS = {
         "info": {
             "start": "start - start conversation with AI\nweather - detailed weather forecat\nnews - NBC News",
             "stop": "stop - end of sentence\nclear - clear sentence\nexit - end chat",
-            "news": "next - next news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
+            "news": "next - next news\n previous - previous news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
         },
         "no_connection": "No internet connection"
     },
@@ -44,7 +44,7 @@ MODELS = {
         "info": {
             "start": "start - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody\nwiadomości - Wiadomości Kurier Poranny",
             "stop": "stop - koniec sekwencji\nwyczyść - wyczyść sekwencje\nkoniec - koniec rozmowy",
-            "news": "następna - następna wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość\nstart - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
+            "news": "następna - następna wiadomość\npoprzednia - poprzednia wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość\nstart - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
         },
         "no_connection": "Brak dostępu do internetu"
     },
@@ -65,6 +65,7 @@ class MyLayout(BoxLayout):
         self.model_generate = OllamaGen()
         self.img_animation_event = None
         self.img_animation_index = 0
+        self.news_index = 0
         self.img_animation_sources = ["mask_O.png", "mask_half_smile.png", "mask_full_smile.png"]
         self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
         self.punctuation_mark = [".", "!", "?", ",", "-"]
@@ -73,6 +74,7 @@ class MyLayout(BoxLayout):
         self.expanded_news = False
         self.news_view = False
         self.ai_view = False
+
     def change_img(self, name):
         self.ids.face_img.source = name
         self.ids.face_img.reload()
@@ -118,9 +120,9 @@ class MyLayout(BoxLayout):
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
             elif status == typeEnum.STOP and self.ai_view:
+                Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
                 user_message = recognized_text.rsplit(' ', 1)[0]
                 self.ids.command.text = user_message
-                Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
                 self.chat_history.append({"role": "user", "content": user_message})
                 self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.rss_panel.data, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
@@ -168,8 +170,8 @@ class MyLayout(BoxLayout):
                 self.ids.columns.size_hint_y = 0.6
                 self.ids.face_img.size_hint_y=0
                 self.rss_dict = self.rss_panel.data
-                self.news = iter(self.rss_dict.keys())
-                self.actuall_news = next(self.news)
+                self.news = list(self.rss_dict.keys())
+                self.actuall_news = self.news[self.news_index]
                 self.ids.model_response.text = self.actuall_news
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
@@ -184,7 +186,22 @@ class MyLayout(BoxLayout):
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.NEXT_NEWS and self.news_view:
-                self.actuall_news = next(self.news)
+                if self.news_index < len(self.news) - 1:
+                    self.news_index +=1
+                    self.actuall_news = self.news[self.news_index]
+                self.ids.face_img.size_hint_y=0
+                def update_news(dt):
+                    if self.expanded_news:
+                        self.ids.model_response.text = f"{self.actuall_news}\n\n{self.rss_dict[self.actuall_news]}"
+                    else:
+                        self.ids.model_response.text = self.actuall_news
+                Clock.schedule_once(update_news)
+                self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config["info"], typeEnum.NEWS.value)
+                self.voice_recorder.voiceRecord(self.onRecognitionResult)
+            elif status == typeEnum.PREVIOUS_NEWS and self.news_view:
+                if self.news_index > 0:
+                    self.news_index -=1
+                    self.actuall_news = self.news[self.news_index]
                 self.ids.face_img.size_hint_y=0
                 def update_news(dt):
                     if self.expanded_news:

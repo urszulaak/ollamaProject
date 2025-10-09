@@ -8,8 +8,9 @@ class typeEnum(Enum):
     WEATHER = 5
     NEWS = 6
     NEXT_NEWS = 7
-    EXPAND_NEWS = 8
-    CLEAR_BUFFER = 9
+    PREVIOUS_NEWS = 8
+    EXPAND_NEWS = 9
+    CLEAR_BUFFER = 10
 
 class languageEnum(Enum):
     ENGLISH = 1
