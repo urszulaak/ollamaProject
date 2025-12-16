@@ -9,10 +9,11 @@ class OllamaGen():
         model_ai = language["ollama_model"]
         with open(file_path, 'r') as file:
             system_note = file.read()
-        system_note += str(news)
+        # system_note += str(news)
         ollama.create(model="ai_model", from_=model_ai, system=system_note)
 
         messages = []
+        # messages.append({"role": "user", "content": system_note})
         if chat_history:
             messages.extend(chat_history)
         else:
@@ -23,7 +24,7 @@ class OllamaGen():
                 model="ai_model",
                 messages=messages,
                 options={
-                    "temperature": 1.0
+                    "temperature": 0.8
                 },
                 stream = True,
             )

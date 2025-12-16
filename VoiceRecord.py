@@ -55,7 +55,7 @@ class VoiceRecord():
         self.aiCOMMANDS= {
             "start": typeEnum.START,
             "stop": typeEnum.STOP,
-            "end": typeEnum.END,
+            "exit": typeEnum.END,
             "koniec": typeEnum.END,
             "wyczyść": "CLEAR_BUFFER",
             "clear": "CLEAR_BUFFER"

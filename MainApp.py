@@ -12,6 +12,7 @@ from WeatherPanel import WeatherPanel
 from RSSPanel import RSSUpdater
 from enums import typeEnum, languageEnum
 import os
+import json
 
 LabelBase.register(name="EmojiFont", fn_regular="NotoColorEmoji.ttf")
 
@@ -53,8 +54,12 @@ MODELS = {
 class MyLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        with open("settings.json", "r") as f:
+            infos = json.load(f)
+        lang = infos["Language"]
+        self.language = languageEnum[lang]
+        self.city = infos["City"]
         self.chat_history = []
-        self.language = languageEnum.POLISH
         self.config = MODELS[self.language]
         self.model_path = self.config["vosk"]
         self.model_ai = self.config["ai"]
@@ -120,7 +125,7 @@ class MyLayout(BoxLayout):
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
             elif status == typeEnum.STOP and self.ai_view:
-                Clock.schedule_once(lambda dt: self.change_img("mask_think.png"))
+                Clock.schedule_once(lambda dt: self.change_img("mask_think.png"),0)
                 user_message = recognized_text.rsplit(' ', 1)[0]
                 self.ids.command.text = user_message
                 self.chat_history.append({"role": "user", "content": user_message})
@@ -268,7 +273,7 @@ class MyLayout(BoxLayout):
 
         self.weather_updater = WeatherUpdater(
             3600,
-            "Bialystok",
+            self.city,
             self.config["lang"],
             {
                 "img": self.ids.weather_img,
