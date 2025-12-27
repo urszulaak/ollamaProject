@@ -8,35 +8,13 @@ class VoiceRecord():
     def __init__(self):
         self.model = None
         self.stream = None
-        self.COMMANDS = {
-            "start": typeEnum.START,
-            "stop": typeEnum.STOP,
-            "end": typeEnum.END,
-            "koniec": typeEnum.END,
-            "weather": typeEnum.WEATHER,
-            "whether": typeEnum.WEATHER,
-            "pogoda": typeEnum.WEATHER,
-            "wiadomości": typeEnum.NEWS,
-            "news": typeEnum.NEWS,
-            "rozwiń": typeEnum.EXPAND_NEWS,
-            "expand": typeEnum.EXPAND_NEWS,
-            "następna": typeEnum.NEXT_NEWS,
-            "next": typeEnum.NEXT_NEWS,
-            "poprzednia": typeEnum.PREVIOUS_NEWS,
-            "previous": typeEnum.PREVIOUS_NEWS
-        }
-        self.aiCOMMANDS = {
-            "start": typeEnum.START,
-            "stop": typeEnum.STOP,
-            "exit": typeEnum.END,
-            "koniec": typeEnum.END,
-            "wyczyść": "CLEAR_BUFFER",
-            "clear": "CLEAR_BUFFER"
-        }
+        self.COMMANDS = {}
+        self.aiCOMMANDS = {}
 
     def voiceInitial(self, model_path, language, status=0):
         self.model = vosk.Model(model_path)
-
+        self.COMMANDS = language.get("commands", {})
+        self.aiCOMMANDS = language.get("aiCommands", {})
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paInt16,
                                 channels=1,
@@ -44,12 +22,13 @@ class VoiceRecord():
                                 input=True,
                                 frames_per_buffer=1024)
         
+        infos = language.get("info", {})
         if status == typeEnum.START.value:
-            info = language["stop"]
+            info = infos.get("stop", "")
         elif status == typeEnum.NEWS.value:
-            info = language["news"]
+            info = infos.get("news", "")
         else:
-            info = language["start"]
+            info = infos.get("start", "")
         return info
 
     def voiceRecord(self, callback, ifTalking=False):
@@ -61,7 +40,7 @@ class VoiceRecord():
             rec = vosk.KaldiRecognizer(self.model, 16000)
         else:
             grammar_list = list(self.COMMANDS.keys()) + ["[unk]"]
-            grammar_json = json.dumps(grammar_list)
+            grammar_json = json.dumps(grammar_list, ensure_ascii=False)
 
             rec = vosk.KaldiRecognizer(self.model, 16000, grammar_json)
 
