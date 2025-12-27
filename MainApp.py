@@ -323,7 +323,7 @@ class MyLayout(BoxLayout):
         )
         self.weather_updater.start()
         if self.weather_updater._last_data is None:
-            self.ids.weather_img = ''
+            self.ids.weather_img = '🚫'
 
         if self.language == languageEnum.POLISH:
             self.rss_panel = RSSUpdater("https://poranny.pl/rss/kurierporanny.xml")
