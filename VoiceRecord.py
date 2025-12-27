@@ -113,5 +113,3 @@ class VoiceRecord():
             callback(self.recognized_text.strip(), self.status, True)
 
         threading.Thread(target=recordAudio, daemon=True).start()
-
-```
