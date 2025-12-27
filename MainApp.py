@@ -31,7 +31,8 @@ MODELS = {
             "stop": "stop - end of sentence\nclear - clear sentence\nexit - end chat",
             "news": "next - next news\n previous - previous news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
         },
-        "no_connection": "No internet connection"
+        "no_connection": "No internet connection",
+        "punctuation_words": ["and", "but", "or", "so", "because", "that", "which", "who", "who", "if", "when", "although", "while", "since", "however", "therefore"]
     },
     languageEnum.POLISH: {
         "vosk": "vosk-model-small-pl-0.22",
@@ -47,7 +48,8 @@ MODELS = {
             "stop": "stop - koniec sekwencji\nwyczyść - wyczyść sekwencje\nkoniec - koniec rozmowy",
             "news": "następna - następna wiadomość\npoprzednia - poprzednia wiadomość\n rozwiń - rozwiń wiadomość\nkoniec - zamknij wiadomość\nstart - rozpocznij rozmowę z AI\npogoda - wyświetl szczegółową prognozę pogody"
         },
-        "no_connection": "Brak dostępu do internetu"
+        "no_connection": "Brak dostępu do internetu",
+        "punctuation_words": ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
     },
 }
 
@@ -72,7 +74,7 @@ class MyLayout(BoxLayout):
         self.img_animation_index = 0
         self.news_index = 0
         self.img_animation_sources = ["mask_O.png", "mask_half_smile.png", "mask_full_smile.png"]
-        self.punctuation = ["i", "a", "ale", "lecz", "lub", "czy", "więc", "zatem", "natomiast","że", "ponieważ", "gdy", "kiedy", "jeśli", "chociaż", "aby", "który", "która", "które"]
+        self.punctuation = self.config["punctuation_words"]
         self.punctuation_mark = [".", "!", "?", ",", "-"]
         self.fisrt_sentence = False
         self.no_connection = False
@@ -148,7 +150,7 @@ class MyLayout(BoxLayout):
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
             elif status == typeEnum.WEATHER and not self.ai_view:
                 self.weather = self.weather_updater._last_data
-                if self.no_connection:
+                if self.weather is None:
                     self.ids.model_response.text =  self.config["no_connection"]
                 else:
                     self.ids.model_response.size_hint_y = 0.2
@@ -280,7 +282,7 @@ class MyLayout(BoxLayout):
                 "temp": self.ids.weather_H,
                 "desc": self.ids.weather_desc
             },
-            WeatherPanel("Bialystok", self.config["lang"])
+            WeatherPanel(self.city, self.config["lang"])
         )
         self.weather_updater.start()
 

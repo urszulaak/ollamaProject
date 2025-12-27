@@ -38,7 +38,7 @@ class VoiceRecord():
         self.COMMANDS = {
             "start": typeEnum.START,
             "stop": typeEnum.STOP,
-            "end": typeEnum.END,
+            "exit": typeEnum.END,
             "koniec": typeEnum.END,
             "weather": typeEnum.WEATHER,
             "whether": typeEnum.WEATHER,
