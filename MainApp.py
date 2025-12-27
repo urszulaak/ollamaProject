@@ -166,6 +166,7 @@ class MyLayout(BoxLayout):
                 self.model_generate.GenerateRespond(self.ids.command.text, self.model_ai, self.rss_panel.data, self.onModelGenerate, chat_history=self.chat_history)
             elif status == typeEnum.END:
                 if self.ai_view:
+                    self.ids.face_img.size_hint_y = 0.001
                     self.ai_view = False
                 else:
                     self.news_view = False
@@ -174,7 +175,6 @@ class MyLayout(BoxLayout):
                 self.ids.image_box.size_hint_y = 0.35
                 self.ids.model_response.size_hint_y = 0.2
                 self.ids.columns.size_hint_y = 0.6
-                self.ids.face_img.size_hint_y=0
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config)
                 self.ids.command.text = ""
                 self.ids.model_response.text = ""
@@ -301,6 +301,7 @@ class MyLayout(BoxLayout):
 
 
     def open(self, dt):
+        self.ids.weather_img.text = '🚫'
         self.ids.face_img.size_hint_y = 0
         self.info = self.voice_recorder.voiceInitial(self.model_path, self.config)
         self.ids.header.text = self.info
@@ -322,8 +323,6 @@ class MyLayout(BoxLayout):
             WeatherPanel(self.city, self.config["lang"])
         )
         self.weather_updater.start()
-        if self.weather_updater._last_data is None:
-            self.ids.weather_img = '🚫'
 
         if self.language == languageEnum.POLISH:
             self.rss_panel = RSSUpdater("https://poranny.pl/rss/kurierporanny.xml")

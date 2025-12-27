@@ -99,6 +99,7 @@ class WeatherPanel:
             'Lekki śnieg': '🌨',
             'Średnie opady śniegu': '🌨',
             'Silny śnieg': '❄️',
+            'Śniegu w pobliżu': '❄️',
             'Możliwe miejscowe burze': '⛈',
             'Umiarkowany lub silny deszcz z burzą': '⛈',
             'Miejscowy lekki deszcz z burzą': '⛈'
