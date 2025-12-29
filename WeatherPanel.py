@@ -98,6 +98,8 @@ class WeatherPanel:
             'Wiatr ze śniegiem': '🌨',
             'Lekki śnieg': '🌨',
             'Średnie opady śniegu': '🌨',
+            'Ciężkie opady śniegu': '❄️',
+            'Przejściowe, średnie lub ciężkie opady śniegu': '❄️',
             'Silny śnieg': '❄️',
             'Śniegu w pobliżu': '❄️',
             'Możliwe miejscowe burze': '⛈',
