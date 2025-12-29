@@ -122,6 +122,7 @@ class WeatherPanel:
             'Light snow': '🌨',
             'Moderate snow': '❄️',
             'Heavy snow': '❄️',
+            'Moderate or heavy snow showers': '❄️',
             'Thundery outbreaks possible': '⛈',
             'Moderate or heavy rain with thunder': '⛈',
             'Patchy light rain with thunder': '⛈'
