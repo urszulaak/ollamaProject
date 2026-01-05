@@ -10,12 +10,19 @@ class VoiceRecord():
         self.stream = None
         self.COMMANDS = {}
         self.aiCOMMANDS = {}
+        self.p = pyaudio.PyAudio()
 
     def voiceInitial(self, model_path, language, status=0):
-        self.model = vosk.Model(model_path)
+        if self.model is None: 
+            self.model = vosk.Model(model_path)
         self.COMMANDS = language.get("commands", {})
         self.aiCOMMANDS = language.get("aiCommands", {})
-        self.p = pyaudio.PyAudio()
+        if self.stream is not None:
+            try:
+                self.stream.close()
+            except:
+                pass
+
         self.stream = self.p.open(format=pyaudio.paInt16,
                                 channels=1,
                                 rate=16000,
@@ -87,8 +94,13 @@ class VoiceRecord():
             
             self.stream.stop_stream()
             self.stream.close()
-            self.p.terminate()
+            self.stream = None
+            # self.p.terminate()
             
             callback(self.recognized_text.strip(), self.status, True)
 
         threading.Thread(target=recordAudio, daemon=True).start()
+    
+    def __del__(self):
+        if self.p:
+            self.p.terminate()

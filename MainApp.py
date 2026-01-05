@@ -1,7 +1,7 @@
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import mainthread
+from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import LabelBase
 from VoiceRecord import VoiceRecord
 from OllamaGen import OllamaGen
@@ -11,6 +11,7 @@ from WeatherUpdater import WeatherUpdater
 from WeatherPanel import WeatherPanel
 from RSSPanel import RSSUpdater
 from enums import typeEnum, languageEnum
+from kivy.core.window import Window
 import os
 import json
 
@@ -27,14 +28,14 @@ MODELS = {
         "record": "Recording...",
         "lang": "en",
         "info": {
-            "start": "start - start conversation with AI\nweather - detailed weather forecat\nnews - NBC News",
+            "start": "start - start conversation with AI\nweather - detailed weather forecast\nnews - NBC News",
             "stop": "stop - end of sentence\nclear - clear sentence\nexit - end chat",
-            "news": "next - next news\n previous - previous news\n expand - expand news\nexit - exit news\nstart conversation with AI\nweather - detailed weather forecat"
+            "news": "next - next news\n previous - previous news\n expand - expand news\nexit - exit news\nstart - start conversation with AI\nweather - detailed weather forecast"
         },
         "commands": {
             "start": typeEnum.START,
             "stop": typeEnum.STOP,
-            "end": typeEnum.END,
+            "exit": typeEnum.END,
             "weather": typeEnum.WEATHER,
             "news": typeEnum.NEWS,
             "expand": typeEnum.EXPAND_NEWS,
@@ -140,6 +141,7 @@ class MyLayout(BoxLayout):
             self.img_animation_event = None
             Clock.schedule_once(lambda dt: self.change_img("mask_full_smile.png"))
 
+    @mainthread
     def onRecognitionResult(self, recognized_text, status, end):
         if end:
             if status == typeEnum.START:
@@ -158,6 +160,7 @@ class MyLayout(BoxLayout):
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config, typeEnum.START.value)
                 self.ids.command.text = self.recording
                 self.voice_recorder.voiceRecord(self.onRecognitionResult, True)
+                self.force_window_refresh()
             elif status == typeEnum.STOP and self.ai_view:
                 Clock.schedule_once(lambda dt: self.change_img("mask_think.png"),0)
                 user_message = recognized_text.rsplit(' ', 1)[0]
@@ -176,10 +179,10 @@ class MyLayout(BoxLayout):
                 self.ids.model_response.size_hint_y = 0.2
                 self.ids.columns.size_hint_y = 0.6
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config)
-                self.ids.command.text = ""
                 self.ids.model_response.text = ""
                 self.chat_history.clear()
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
+                Clock.schedule_once(lambda dt: setattr(self.ids.command, "text", ""), 1)
             elif status == typeEnum.WEATHER and not self.ai_view:
                 self.weather = self.weather_updater._last_data
                 if self.weather is None:
@@ -255,8 +258,20 @@ class MyLayout(BoxLayout):
                 Clock.schedule_once(update_news)
                 self.ids.header.text = self.voice_recorder.voiceInitial(self.model_path, self.config, typeEnum.NEWS.value)
                 self.voice_recorder.voiceRecord(self.onRecognitionResult)
+            self.force_window_refresh()
         else:
             self.ids.command.text = recognized_text
+            self.force_window_refresh()
+
+    def force_window_refresh(self):
+        current_width, current_height = Window.size
+        
+        Window.size = (current_width + 1, current_height + 1)
+        
+        def restore_size(dt):
+            Window.size = (current_width, current_height)
+            
+        Clock.schedule_once(restore_size, 0)
 
     def speak(self, sentence):
         self.start_img_animation()
